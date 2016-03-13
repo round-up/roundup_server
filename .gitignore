@@ -1,0 +1,3 @@
+venv/*
+unit_test_notebooks/*
+.idea/*
