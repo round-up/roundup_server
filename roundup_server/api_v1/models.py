@@ -8,21 +8,30 @@ class User(models.Model):
     user_name = models.CharField(max_length=50)
     user_birth = models.DateField()
     user_gender = models.BooleanField(default=False)
-    user_profile_image = models.ImageField(width_field=100, height_field=100)
-    user_curver = models.ImageField()
+    user_profile_image = models.ImageField(width_field=100, height_field=100, blank=True)
+    user_curver = models.ImageField(blank=True)
     user_phone_number = models.CharField(max_length=20)
 
     class Meta:
         ordering = ('user_name',)
 
+    def __unicode__(self):
+        return self.user_name
+
 
 class Category(models.Model):
     category_name = models.CharField(max_length=50)
+
+    def __unicode__(self):
+        return self.category_name
 
 
 class GroupBelong(models.Model):
     belong_title = models.CharField(max_length=50)
     belong_content = models.TextField()
+
+    def __unicode__(self):
+        return self.belong_title
 
 
 class Group(models.Model):
@@ -40,6 +49,9 @@ class Group(models.Model):
     class Meta:
         ordering = ('group_start_date', 'group_name',)
 
+    def __unicode__(self):
+        return self.group_name
+
 
 class UnitedGroup(models.Model):
     united_group_title = models.CharField(max_length=100)
@@ -50,11 +62,13 @@ class UnitedGroup(models.Model):
     class Meta:
         ordering = ('united_group_starting_date', 'united_group_title',)
 
+    def __unicode__(self):
+        return self.united_group_title
+
 
 class UnitedGroupsBridge(models.Model):
     group_id = models.ForeignKey(Group)
     united_group = models.ForeignKey(UnitedGroup)
-
 
     class Meta:
         unique_together = ('group_id', 'united_group', )
