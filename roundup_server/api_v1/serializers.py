@@ -1,10 +1,10 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import models
 from rest_framework import serializers
-from models import Users
+from models import User
 
 
 # Service User
-class UsersSerializer(serializers.Serializer):
+class UserSerializer(serializers.Serializer):
     pk = serializers.IntegerField(read_only=True)
     user_email = serializers.CharField(max_length=100)
     user_passwd = serializers.CharField(max_length=16)
@@ -16,7 +16,7 @@ class UsersSerializer(serializers.Serializer):
     user_phone_number = serializers.CharField(max_length=20, required=False)
 
     def create(self, validated_data):
-        return Users.objects.create(**validated_data)
+        return User.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
         instance.user_email = validated_data.get('user_email', instance.user_email)
@@ -32,7 +32,7 @@ class UsersSerializer(serializers.Serializer):
 
 
 # Auth User
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class AuthUserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = User
+        model = models.User
         fields = ('url', 'username', 'email', 'groups')
