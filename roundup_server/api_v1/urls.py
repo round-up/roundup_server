@@ -3,7 +3,7 @@ import views
 from rest_framework import routers
 
 router = routers.DefaultRouter()
-router.register(r'user', views.UserViewSet)
+#router.register(r'user', views.UserViewSet)
 router.register(r'group_belong', views.GroupBelongViewSet)
 router.register(r'group', views.GroupViewSet)
 router.register(r'united_group', views.UnitedGroupViewSet)

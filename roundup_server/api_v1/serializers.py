@@ -4,14 +4,14 @@ from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, 
 
 # Service User
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = UserExtend
         fields = '__all__'
         extra_kwargs = {
             'user_profile': {'required': False},
             'user_cover': {'required': False},
-            'user_phone_number': {'required': False},
-            'user_passwd': {'write_only': True}
+            'user_phone_number': {'required': False}
         }
 
 

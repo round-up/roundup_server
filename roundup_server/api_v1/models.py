@@ -4,14 +4,21 @@ from django.db import models
 
 
 class UserExtendManager(BaseUserManager):
-    def create_user(self, user_name, email,
-                    user_birth, user_gender, user_profile_image,
-                    user_cover, user_phone_number):
-        user = self.model(email=email, user_name=user_name,
-                          user_birth=user_birth, user_gender=user_gender,
-                          user_profile_image=user_profile_image, user_cover=user_cover,
-                          user_phone_number=user_phone_number)
+    def create_user(self, email, password=None, **others):
+        user = self.model(email=email, password=password, **others)
+        user.set_password(password)
+        user.save(using=self._db)
         return user
+
+    def create_user_by_view(self, data):
+        from copy import deepcopy
+        print type(data)
+        d = dict(deepcopy(data))
+        email = d['email']
+        password = d['password']
+        del d['email']
+        del d['password']
+        return self.create_user(email, password, **d)
 
     def create_superuser(self):
         return None
@@ -46,7 +53,7 @@ class UserExtend(AbstractBaseUser):
         return self.user_name
 
     def __unicode__(self):
-        return self.username
+        return self.user_name
 
 
 class Category(models.Model):
@@ -65,7 +72,7 @@ class GroupBelong(models.Model):
 
 
 class Group(models.Model):
-    group_leader_email = models.ForeignKey(User, unique=False)
+    group_leader_email = models.ForeignKey(UserExtend, unique=False)
     belong_id = models.ForeignKey(GroupBelong)
     category_id = models.ForeignKey(Category)
     group_name = models.CharField(max_length=100)
@@ -113,7 +120,7 @@ class GroupUserLevel(models.Model):
 
 class GroupUsers(models.Model):
     group_id = models.ForeignKey(Group)
-    user_email = models.ForeignKey(User)
+    user_email = models.ForeignKey(UserExtend)
     group_user_level_id = models.ForeignKey(GroupUserLevel)
     group_gisoo = models.IntegerField(default=1)
     # level_assined
@@ -124,7 +131,7 @@ class GroupUsers(models.Model):
 
 class GroupBulletins(models.Model):
     group_id = models.ForeignKey(Group)
-    user_email = models.ForeignKey(User)
+    user_email = models.ForeignKey(UserExtend)
     bulletin_type = models.CharField(max_length=10)
     bulletin_title = models.CharField(max_length=100)
     bulletin_date = models.DateTimeField(auto_now=True)
