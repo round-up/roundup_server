@@ -1,19 +1,11 @@
-from django.contrib.auth import models
 from rest_framework import serializers
-from models import User, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupBulletins, GroupSchedules
-
-
-# Auth User
-class AuthUserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = models.User
-        fields = ('url', 'username', 'email', 'groups')
+from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupBulletins, GroupSchedules
 
 
 # Service User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = UserExtend
         fields = '__all__'
         extra_kwargs = {
             'user_profile': {'required': False},

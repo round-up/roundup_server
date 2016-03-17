@@ -1,21 +1,37 @@
 from rest_framework import viewsets
 from serializers import *
-from models import User, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupBulletins, GroupSchedules
-from django.contrib.auth import models
+from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupBulletins, GroupSchedules
 from rest_framework.renderers import JSONRenderer
-
-
-class AuthUserViewSet(viewsets.ModelViewSet):
-    queryset = models.User.objects.all().order_by('-date_joined')
-    serializer_class = AuthUserSerializer
-    renderer_classes = (JSONRenderer, )
+from rest_framework import status
+from django.http import HttpResponse
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all().order_by('-user_name')
     serializer_class = UserSerializer
     renderer_classes = (JSONRenderer, )
 
+    def metadata(self, request):
+        data = super(UserViewSet, self).metadata(request)
+        return data
+
+    def create(self, request):
+        serializer = self.get_serializer(data=request.DATA, files=request.FILES)
+
+        if serializer.is_valid():
+            self.pre_save(serializer.object)
+            self.object = serializer.save(force_insert=True)
+            self.post_save(self.object, created=True)
+            self.object.set_password(self.object.password)
+            self.object.save()
+            headers = self.get_success_headers(serializer.data)
+            return HttpResponse(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return UserExtend.objects.all()
+        else:
+            return UserExtend.objects.filter(id=self.request.user.id)
 
 class GroupBelongViewSet(viewsets.ModelViewSet):
     queryset = GroupBelong.objects.all()

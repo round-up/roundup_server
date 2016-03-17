@@ -1,22 +1,52 @@
 # model image link : https://drive.google.com/open?id=0B05vtPvZZCtedUh2VWo1bHMzUGs
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
 
 
-class User(models.Model):
-    user_email = models.CharField(max_length=100, primary_key=True)
-    user_passwd = models.CharField(max_length=16)
-    user_name = models.CharField(max_length=50)
+class UserExtendManager(BaseUserManager):
+    def create_user(self, user_name, email,
+                    user_birth, user_gender, user_profile_image,
+                    user_cover, user_phone_number):
+        user = self.model(email=email, user_name=user_name,
+                          user_birth=user_birth, user_gender=user_gender,
+                          user_profile_image=user_profile_image, user_cover=user_cover,
+                          user_phone_number=user_phone_number)
+        return user
+
+    def create_superuser(self):
+        return None
+
+
+class UserExtend(AbstractBaseUser):
+    email = models.EmailField(
+        max_length=255, unique=True
+    )
+    user_name = models.CharField(max_length=100)
     user_birth = models.DateField()
     user_gender = models.BooleanField(default=False)
     user_profile_image = models.ImageField(width_field=100, height_field=100, blank=True)
     user_cover = models.ImageField(blank=True)
     user_phone_number = models.CharField(max_length=20)
 
+    is_active = models.BooleanField(default=True)
+    is_admin = models.BooleanField(default=False)
+
+    objects = UserExtendManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['user_name', 'user_gender']
+
     class Meta:
         ordering = ('user_name',)
 
-    def __unicode__(self):
+    def get_full_name(self):
         return self.user_name
+
+    def get_short_name(self):
+        return self.user_name
+
+    def __unicode__(self):
+        return self.username
 
 
 class Category(models.Model):
