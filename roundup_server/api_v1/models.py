@@ -9,7 +9,7 @@ class User(models.Model):
     user_birth = models.DateField()
     user_gender = models.BooleanField(default=False)
     user_profile_image = models.ImageField(width_field=100, height_field=100, blank=True)
-    user_curver = models.ImageField(blank=True)
+    user_cover = models.ImageField(blank=True)
     user_phone_number = models.CharField(max_length=20)
 
     class Meta:
@@ -43,7 +43,7 @@ class Group(models.Model):
     group_start_date = models.DateField(auto_now=True)
     group_place = models.CharField(max_length=100)
     group_logo = models.ImageField(width_field=100, height_field=100)
-    group_curver = models.ImageField()
+    group_cover = models.ImageField()
     group_recruit_state = models.BooleanField(default=False)
 
     class Meta:

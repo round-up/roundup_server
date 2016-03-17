@@ -17,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = '__all__'
         extra_kwargs = {
             'user_profile': {'required': False},
-            'user_curver': {'required': False},
+            'user_cover': {'required': False},
             'user_phone_number': {'required': False},
             'user_passwd': {'write_only': True}
         }
@@ -35,7 +35,7 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = '__all__'
         extra_kwargs = {
             'group_logo': {'required': False},
-            'group_curver': {'required': False}
+            'group_cover': {'required': False}
         }
 
 
