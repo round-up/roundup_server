@@ -13,7 +13,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     renderer_classes = (JSONRenderer, )
     parser_classes = (JSONParser, )
-    permission_classes = (IsAnonCreate, )
+    #permission_classes = (IsAnonCreate, )
     queryset = UserExtend.objects.all()
 
     # def __init__(self):
