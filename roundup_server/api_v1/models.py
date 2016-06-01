@@ -26,7 +26,7 @@ class UserExtendManager(BaseUserManager):
 
 class UserExtend(AbstractBaseUser):
     email = models.EmailField(
-        max_length=255, unique=True
+        max_length=255, unique=True, primary_key=True
     )
     user_name = models.CharField(max_length=100)
     user_birth = models.DateField()
@@ -73,8 +73,10 @@ class GroupBelong(models.Model):
 
 class Group(models.Model):
     group_leader_email = models.ForeignKey(UserExtend, unique=False)
-    belong_id = models.ForeignKey(GroupBelong)
-    category_id = models.ForeignKey(Category)
+    # belong_id = models.ForeignKey(GroupBelong)
+    # category_id = models.ForeignKey(Category)
+    group_belong = models.CharField(max_length=100)
+    group_category = models.CharField(max_length=100)
     group_name = models.CharField(max_length=100)
     group_description = models.TextField()
     group_start_date = models.DateField(auto_now=True)

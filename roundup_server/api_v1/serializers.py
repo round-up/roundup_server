@@ -27,7 +27,11 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = '__all__'
         extra_kwargs = {
             'group_logo': {'required': False},
-            'group_cover': {'required': False}
+            'group_cover': {'required': False},
+            'group_category': {'required': False},
+            'group_belong': {'required': False},
+            'group_place': {'required': False},
+            'group_description': {'required': False}
         }
 
 
