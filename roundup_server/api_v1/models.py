@@ -75,6 +75,7 @@ class Group(models.Model):
     group_leader_email = models.ForeignKey(UserExtend, unique=False)
     # belong_id = models.ForeignKey(GroupBelong)
     # category_id = models.ForeignKey(Category)
+    #group_leader_email = models.CharField(max_length=100)
     group_belong = models.CharField(max_length=100)
     group_category = models.CharField(max_length=100)
     group_name = models.CharField(max_length=100)
