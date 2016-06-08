@@ -1,17 +1,22 @@
 from rest_framework import serializers
 from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupBulletins, GroupSchedules
-
+from addtionals import Base64ImageField
 
 # Service User
 class UserSerializer(serializers.ModelSerializer):
+
+    #user_profile_image = Base64ImageField()
 
     class Meta:
         model = UserExtend
         fields = '__all__'
         extra_kwargs = {
-            'user_profile': {'required': False},
+            'user_profile_image': {'required': False},
             'user_cover': {'required': False},
-            'user_phone_number': {'required': False}
+            'user_phone_number': {'required': False},
+            'password': {'write_only': True},
+            'last_login': {'write_only': True},
+            'is_admin': {'write_only': True}
         }
 
 

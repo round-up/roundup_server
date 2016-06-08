@@ -1,7 +1,5 @@
-# model image link : https://drive.google.com/open?id=0B05vtPvZZCtedUh2VWo1bHMzUGs
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
-
 
 class UserExtendManager(BaseUserManager):
     def create_user(self, email, password=None, **others):
@@ -9,6 +7,14 @@ class UserExtendManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
         return user
+
+    def check_password(self, data):
+        email = data['email']
+        password = data['password']
+        user = self.get_by_natural_key(email)
+        if user == None:
+            return False
+        return user.check_password(password)
 
     def create_user_by_view(self, data):
         from copy import deepcopy
@@ -31,8 +37,8 @@ class UserExtend(AbstractBaseUser):
     user_name = models.CharField(max_length=100)
     user_birth = models.DateField()
     user_gender = models.BooleanField(default=False)
-    user_profile_image = models.ImageField(width_field=100, height_field=100, blank=True)
-    user_cover = models.ImageField(blank=True)
+    user_profile_image = models.TextField(blank=True)
+    user_cover = models.TextField(blank=True)
     user_phone_number = models.CharField(max_length=20)
 
     is_active = models.BooleanField(default=True)
@@ -75,15 +81,15 @@ class Group(models.Model):
     group_leader_email = models.ForeignKey(UserExtend, unique=False)
     # belong_id = models.ForeignKey(GroupBelong)
     # category_id = models.ForeignKey(Category)
-    #group_leader_email = models.CharField(max_length=100)
+    # group_leader_email = models.CharField(max_length=100)
     group_belong = models.CharField(max_length=100)
     group_category = models.CharField(max_length=100)
     group_name = models.CharField(max_length=100)
     group_description = models.TextField()
     group_start_date = models.DateField(auto_now=True)
     group_place = models.CharField(max_length=100)
-    group_logo = models.ImageField(width_field=100, height_field=100)
-    group_cover = models.ImageField()
+    group_logo = models.TextField()
+    group_cover = models.TextField()
     group_recruit_state = models.BooleanField(default=False)
 
     class Meta:

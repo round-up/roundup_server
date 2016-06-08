@@ -5,13 +5,26 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from rest_framework import status
 from django.http import HttpResponse
+from django.core.files.base import ContentFile
+from rest_framework.decorators import detail_route
+import json
 from permissions import IsAnonCreate
 from django.shortcuts import get_object_or_404
 
+def get_B64_JSON_Parser(fields):
+    class Impl(JSONParser):
+        media_type = 'application/json+b64'
+
+        def parse(self, *args, **kwargs):
+            ret = super(Impl, self).parse(*args, **kwargs)
+            for field in fields:
+                ret[field] = ContentFile(name=field, content=ret[field].decode('base64'))
+            return ret
+    return Impl
 
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)# get_B64_JSON_Parser('user_profile_image'))
     parser_classes = (JSONParser, )
     #permission_classes = (IsAnonCreate, )
     queryset = UserExtend.objects.all()
@@ -25,14 +38,26 @@ class UserViewSet(viewsets.ModelViewSet):
     #     else:
     #         return UserExtend.objects.filter(id=self.request.user.id)
 
+
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid()
-        u = UserExtend.objects.create_user_by_view(request.data)
+        #serializer.data['password'] = request.data['password']
+        wrapper = dict(serializer.data)
+        wrapper['password'] = request.data['password']
+        #print wrapper
+        u = UserExtend.objects.create_user_by_view(wrapper)
         if u is not None:
             #headers = self.get_success_headers(serializer.data)
             return HttpResponse(serializer.data, status=status.HTTP_201_CREATED)#, headers=headers)
         return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @detail_route(renderer_classes=[JSONRenderer])
+    def check_password(self, request, *args, **kwargs):
+        data = request.data
+        chk_result = {'result' : UserExtend.objects.check_password(data)}
+        return HttpResponse(json.dumps(chk_result), status=status.HTTP_200_OK)
+
 
     #
     # def retrieve(self, request, pk=None):
