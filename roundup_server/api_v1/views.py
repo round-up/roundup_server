@@ -7,6 +7,7 @@ from rest_framework import status
 from django.http import HttpResponse
 from django.core.files.base import ContentFile
 from rest_framework.decorators import detail_route
+from django.core import serializers
 import json
 from permissions import IsAnonCreate
 from django.shortcuts import get_object_or_404
@@ -93,6 +94,38 @@ class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all().order_by('-group_name')
     serializer_class = GroupSerializer
     renderer_classes = (JSONRenderer, )
+
+    def list(self, request, pk=None):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid()
+        leader_email = serializer.data['group_leader_email']
+        print '1'
+        if leader_email is not None:
+            inst = Group.objects.filter_group_by_leader(leader_email)
+            result = serializers.serialize("json", inst)
+            print result
+            temp = json.loads(result)
+            result = []
+            for item in temp:
+                item['fields']['pk'] = item['pk']
+                result.append(item['fields'])
+            #result = [item['fields'] for item in result]
+            result = json.dumps(result)
+            if inst is not None:
+                return HttpResponse(result, status=status.HTTP_200_OK)#, headers=headers)
+        return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # serializer = self.get_serializer(data=request.data)
+    # serializer.is_valid()
+    # #serializer.data['password'] = request.data['password']
+    # wrapper = dict(serializer.data)
+    # wrapper['password'] = request.data['password']
+    # #print wrapper
+    # u = UserExtend.objects.create_user_by_view(wrapper)
+    # if u is not None:
+    #     #headers = self.get_success_headers(serializer.data)
+    #     return HttpResponse(serializer.data, status=status.HTTP_201_CREATED)#, headers=headers)
+    # return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UnitedGroupViewSet(viewsets.ModelViewSet):

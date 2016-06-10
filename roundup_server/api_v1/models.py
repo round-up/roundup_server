@@ -29,6 +29,12 @@ class UserExtendManager(BaseUserManager):
     def create_superuser(self):
         return None
 
+class GroupManager(models.Manager):
+    def filter_group_by_leader(self, leader_email):
+        user_inst = UserExtend.objects.model(email=leader_email)
+        group_inst = Group.objects.filter(group_leader_email=user_inst)
+        print group_inst
+        return group_inst
 
 class UserExtend(AbstractBaseUser):
     email = models.EmailField(
@@ -88,9 +94,11 @@ class Group(models.Model):
     group_description = models.TextField()
     group_start_date = models.DateField(auto_now=True)
     group_place = models.CharField(max_length=100)
-    group_logo = models.TextField()
-    group_cover = models.TextField()
+    group_logo = models.TextField(blank=True)
+    group_cover = models.TextField(blank=True)
     group_recruit_state = models.BooleanField(default=False)
+
+    objects = GroupManager()
 
     class Meta:
         ordering = ('group_start_date', 'group_name',)

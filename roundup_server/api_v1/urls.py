@@ -19,11 +19,22 @@ user_chk = views.UserViewSet.as_view({
     'get': 'check_password'
 })
 
+group_list = views.GroupViewSet.as_view({
+    'get': 'list',
+    'post': 'create',
+})
+
+group_detail = views.GroupViewSet.as_view({
+    'get': 'retrieve',
+    'put': 'update',
+    'patch': 'partial_update',
+    'delete': 'destroy'
+})
 
 router = routers.DefaultRouter()
 #router.register(r'user', views.UserViewSet)
 router.register(r'group_belong', views.GroupBelongViewSet)
-router.register(r'group', views.GroupViewSet)
+#router.register(r'group', views.GroupViewSet)
 router.register(r'united_group', views.UnitedGroupViewSet)
 router.register(r'group_user_level', views.GroupUserLevelViewSet)
 router.register(r'group_user', views.GroupUsersViewSet)
@@ -35,4 +46,6 @@ urlpatterns = [
     url(r'^user/$', user_list, name='user_list'),
     url(r'^user/check/', user_chk, name='chk_password'),
     url(r'^user/(?P<pk>[^/]+)/$', user_detail, name='user_detail'),
+    url(r'^group/$', group_list, name='group_list'),
+    url(r'^group/(?P<pk>[^/]+)/$', group_detail, name='group_detail'),
 ]
