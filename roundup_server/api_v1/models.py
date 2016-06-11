@@ -33,20 +33,38 @@ class UserExtendManager(BaseUserManager):
 
 
 class GroupManager(models.Manager):
-    def filter_group_by_leader(self, leader_email):
-        user_inst = UserExtend.objects.model(email=leader_email)
+    def filter_group_by_leader(self, email):
+        user_inst = UserExtend.objects.get(email=email)
         group_inst = Group.objects.filter(group_leader_email=user_inst)
         return group_inst
 
+    def filter_group_by_group_user(self, email):
+        groupuser_inst = GroupUsers.objects.filter(email=email)
+        group_inst = Group.objects.filter(id=groupuser_inst)
+        return group_inst
 
 class GroupUserLevelManager(models.Manager):
     def get_all_user_level(self, group_id):
-        group_inst = Group.objects.model(id=group_id)
+        group_inst = Group.objects.get(id=group_id)
         level_list = GroupUserLevel.objects.filter(group_id=group_inst)
         return level_list
 
 
 class GroupUserManager(models.Manager):
+    def add_group_user(self, group_id, email):
+        group_inst = Group.objects.get(id=group_id)
+        user_inst = UserExtend.objects.get(email=email)
+        print group_inst
+        print user_inst
+        try:
+            new_group_user = GroupUsers(group_id=group_inst, email=user_inst)
+            print new_group_user
+            new_group_user.save()
+        except Exception, e:
+            print e.message
+            return None
+        return SUCCESS_TO_EXCEED
+
     def get_all_users_in_group(self, group_id):
         group_inst = Group.objects.model(id=group_id)
         group_user_list = GroupUsers.objects.filter(group_id=group_inst)
@@ -164,7 +182,7 @@ class GroupUserLevel(models.Model):
 
 class GroupUsers(models.Model):
     group_id = models.ForeignKey(Group)
-    user_email = models.ForeignKey(UserExtend)
+    email = models.ForeignKey(UserExtend)
     group_user_level = models.IntegerField(default=0)
     group_gisoo = models.IntegerField(default=1)
     # level_assined
@@ -172,7 +190,7 @@ class GroupUsers(models.Model):
     objects = GroupUserManager()
 
     class Meta:
-        unique_together = ('group_id', 'user_email', )
+        unique_together = ('group_id', 'email', )
 
 
 class GroupBulletins(models.Model):

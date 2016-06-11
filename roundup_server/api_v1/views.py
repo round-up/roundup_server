@@ -1,3 +1,4 @@
+# -*- coding : utf-8 -*-
 from rest_framework import viewsets
 from serializers import *
 from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupBulletins, GroupSchedules
@@ -84,14 +85,28 @@ class GroupViewSet(viewsets.ModelViewSet):
     def list(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid()
-        leader_email = serializer.data['group_leader_email']
-        print '1'
-        if leader_email is not None:
-            inst = Group.objects.filter_group_by_leader(leader_email)
-            result = convert_inst_to_json(inst)
+        email = serializer.data['group_leader_email']
+        if email is not None:
+            result = {}
+            inst = Group.objects.filter_group_by_leader(email)
+            result_part1 = convert_inst_to_json(inst)
+            inst2 = Group.objects.filter_group_by_group_user(email)
+            result_part2 = convert_inst_to_json(inst2)
+
+            print result_part1
+            print result_part2
+            if result_part1 is not None:
+                result['leader'] = result_part1
+            if result_part2 is not None:
+                result['member'] = result_part2
+            if len(result) == 0:
+                result['message'] = 'There is no groups.'
+
+            result = json.dumps(result)
             if inst is not None:
                 return HttpResponse(result, status=status.HTTP_200_OK)#, headers=headers)
         return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class UnitedGroupViewSet(viewsets.ModelViewSet):
@@ -134,12 +149,24 @@ class GroupUsersViewSet(viewsets.ModelViewSet):
         return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete_by_email(self, request=None, pk=None):
-        if email is None:
+        if pk is None:
             return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
         else:
-            result = GroupUsers.objects.delete_by_useremail(email)
+            result = GroupUsers.objects.delete_by_useremail(pk)
             result = json.dumps(result)
             return HttpResponse(result, status=status.HTTP_200_OK)#, headers=headers)
+
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid()
+        group_id = serializer.data['group_id']
+        email = serializer.data['email']
+        if group_id is None or email is None:
+            HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            result = GroupUsers.objects.add_group_user(group_id=group_id, email=email)
+            result = json.dumps(result)
+            return HttpResponse(result, status=status.HTTP_200_OK)
 
 class GroupBulletinsViewSet(viewsets.ModelViewSet):
     queryset = GroupBulletins.objects.all()

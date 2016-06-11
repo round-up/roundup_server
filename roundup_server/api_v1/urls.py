@@ -73,5 +73,5 @@ urlpatterns = [
     url(r'^group_user_level/$', group_user_level_list, name='group_user_level_list'),
     url(r'^group_user_level/(?P<pk>[^/]+)/$', group_user_level_detail, name='group_user_level_detail'),
     url(r'^group_user/$', group_user_list, name='group_user_list'),
-    url(r'^group_user/(?P<pk>[^/]+)/$'), group_user_detail, name='group_user_detail'),
+    url(r'^group_user/(?P<pk>[^/]+)/$', group_user_detail, name='group_user_detail'),
 ]
