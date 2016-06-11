@@ -23,6 +23,16 @@ def get_B64_JSON_Parser(fields):
             return ret
     return Impl
 
+def convert_inst_to_json(inst):
+    result = serializers.serialize("json", inst)
+    temp = json.loads(result)
+    result = []
+    for item in temp:
+        item['fields']['pk'] = item['pk']
+        result.append(item['fields'])
+    result = json.dumps(result)
+    return result
+
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     renderer_classes = (JSONRenderer,)# get_B64_JSON_Parser('user_profile_image'))
@@ -60,30 +70,6 @@ class UserViewSet(viewsets.ModelViewSet):
         return HttpResponse(json.dumps(chk_result), status=status.HTTP_200_OK)
 
 
-    #
-    # def retrieve(self, request, pk=None):
-    #     queryset = UserExtend.objects.all()
-    #     user = get_object_or_404(queryset, pk=pk)
-    #     serializer = UserSerializer(user)
-    #     return HttpResponse(serializer.data)
-
-    # def metadata(self, request):
-    #     data = super(UserViewSet, self).metadata(request)
-    #     return data
-    #
-    # def create(self, request):
-    #     serializer = self.get_serializer(data=request.data)#, files=request.files)
-    #     if serializer.is_valid():
-    #         self.pre_save(serializer.object)
-    #         self.object = serializer.save(force_insert=True)
-    #         self.post_save(self.object, created=True)
-    #         self.object.set_password(self.object.password)
-    #         self.object.save()
-    #         headers = self.get_success_headers(serializer.data)
-    #         return HttpResponse(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-    #     return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class GroupBelongViewSet(viewsets.ModelViewSet):
     queryset = GroupBelong.objects.all()
     serializer_class = GroupBelongSerializer
@@ -95,37 +81,17 @@ class GroupViewSet(viewsets.ModelViewSet):
     serializer_class = GroupSerializer
     renderer_classes = (JSONRenderer, )
 
-    def list(self, request, pk=None):
+    def list(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid()
         leader_email = serializer.data['group_leader_email']
         print '1'
         if leader_email is not None:
             inst = Group.objects.filter_group_by_leader(leader_email)
-            result = serializers.serialize("json", inst)
-            print result
-            temp = json.loads(result)
-            result = []
-            for item in temp:
-                item['fields']['pk'] = item['pk']
-                result.append(item['fields'])
-            #result = [item['fields'] for item in result]
-            result = json.dumps(result)
+            result = convert_inst_to_json(inst)
             if inst is not None:
                 return HttpResponse(result, status=status.HTTP_200_OK)#, headers=headers)
         return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    # serializer = self.get_serializer(data=request.data)
-    # serializer.is_valid()
-    # #serializer.data['password'] = request.data['password']
-    # wrapper = dict(serializer.data)
-    # wrapper['password'] = request.data['password']
-    # #print wrapper
-    # u = UserExtend.objects.create_user_by_view(wrapper)
-    # if u is not None:
-    #     #headers = self.get_success_headers(serializer.data)
-    #     return HttpResponse(serializer.data, status=status.HTTP_201_CREATED)#, headers=headers)
-    # return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UnitedGroupViewSet(viewsets.ModelViewSet):
@@ -139,12 +105,41 @@ class GroupUserLevelViewSet(viewsets.ModelViewSet):
     serializer_class = GroupUserLevelSerializer
     renderer_classes = (JSONRenderer, )
 
+    def list(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid()
+        group_id = serializer.data['group_id']
+        if group_id is not None:
+            inst = GroupUserLevel.objects.get_all_user_level(group_id)
+            result = convert_inst_to_json(inst)
+            if inst is not None:
+                return HttpResponse(result, status=status.HTTP_200_OK)#, headers=headers)
+        return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class GroupUsersViewSet(viewsets.ModelViewSet):
     queryset = GroupUsers.objects.all()
     serializer_class = GroupUsersSerializer
     renderer_classes = (JSONRenderer, )
 
+    def list(self, request, pk=None):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid()
+        group_id = serializer.data['group_id']
+        if group_id is not None:
+            inst = GroupUsers.objects.get_all_users_in_group(group_id = group_id)
+            result = convert_inst_to_json(inst)
+            if inst is not None:
+                return HttpResponse(result, status=status.HTTP_200_OK)#, headers=headers)
+        return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete_by_email(self, request=None, pk=None):
+        if email is None:
+            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+        else:
+            result = GroupUsers.objects.delete_by_useremail(email)
+            result = json.dumps(result)
+            return HttpResponse(result, status=status.HTTP_200_OK)#, headers=headers)
 
 class GroupBulletinsViewSet(viewsets.ModelViewSet):
     queryset = GroupBulletins.objects.all()

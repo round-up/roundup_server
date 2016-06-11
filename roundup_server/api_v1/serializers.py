@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupBulletins, GroupSchedules
-from addtionals import Base64ImageField
+from additionals import Base64ImageField
 
 # Service User
 class UserSerializer(serializers.ModelSerializer):

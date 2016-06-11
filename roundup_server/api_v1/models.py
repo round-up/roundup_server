@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
+from additionals import SUCCESS_TO_EXCEED
+
 
 class UserExtendManager(BaseUserManager):
     def create_user(self, email, password=None, **others):
@@ -29,12 +31,36 @@ class UserExtendManager(BaseUserManager):
     def create_superuser(self):
         return None
 
+
 class GroupManager(models.Manager):
     def filter_group_by_leader(self, leader_email):
         user_inst = UserExtend.objects.model(email=leader_email)
         group_inst = Group.objects.filter(group_leader_email=user_inst)
-        print group_inst
         return group_inst
+
+
+class GroupUserLevelManager(models.Manager):
+    def get_all_user_level(self, group_id):
+        group_inst = Group.objects.model(id=group_id)
+        level_list = GroupUserLevel.objects.filter(group_id=group_inst)
+        return level_list
+
+
+class GroupUserManager(models.Manager):
+    def get_all_users_in_group(self, group_id):
+        group_inst = Group.objects.model(id=group_id)
+        group_user_list = GroupUsers.objects.filter(group_id=group_inst)
+        return group_user_list
+
+    def delete_by_useremail(self, user_email):
+        user_inst = UserExtend.objects.model(email=user_email)
+        try:
+            GroupUsers.objects.filter(user_email=user_inst).delete()
+        except Exception:
+            return None
+        return SUCCESS_TO_EXCEED
+
+
 
 class UserExtend(AbstractBaseUser):
     email = models.EmailField(
@@ -131,16 +157,19 @@ class UnitedGroupsBridge(models.Model):
 class GroupUserLevel(models.Model):
     group_id = models.ForeignKey(Group)
     level_title = models.CharField(max_length=100)
-    level_desc = models.TextField()
-    level_perm = models.IntegerField()
+    #level_desc = models.TextField()
+    #level_perm = models.IntegerField()
+    objects = GroupUserLevelManager()
 
 
 class GroupUsers(models.Model):
     group_id = models.ForeignKey(Group)
     user_email = models.ForeignKey(UserExtend)
-    group_user_level_id = models.ForeignKey(GroupUserLevel)
+    group_user_level = models.IntegerField(default=0)
     group_gisoo = models.IntegerField(default=1)
     # level_assined
+
+    objects = GroupUserManager()
 
     class Meta:
         unique_together = ('group_id', 'user_email', )

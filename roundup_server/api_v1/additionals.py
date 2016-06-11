@@ -15,6 +15,12 @@ ALLOWED_IMAGE_TYPES = (
     "gif"
 )
 
+
+SUCCESS_TO_EXCEED = {
+    'result' : 'success'
+}
+
+
 class Base64ImageField(fields.ImageField):
     """
     A django-rest-framework field for handling image-uploads through raw post data.
