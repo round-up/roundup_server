@@ -1,25 +1,22 @@
-from django.contrib.auth import models
 from rest_framework import serializers
-from models import User, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupBulletins, GroupSchedules
-
-
-# Auth User
-class AuthUserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = models.User
-        fields = ('url', 'username', 'email', 'groups')
-
+from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupBulletins, GroupSchedules
+from additionals import Base64ImageField
 
 # Service User
 class UserSerializer(serializers.ModelSerializer):
+
+    #user_profile_image = Base64ImageField()
+
     class Meta:
-        model = User
+        model = UserExtend
         fields = '__all__'
         extra_kwargs = {
-            'user_profile': {'required': False},
+            'user_profile_image': {'required': False},
             'user_cover': {'required': False},
             'user_phone_number': {'required': False},
-            'user_passwd': {'write_only': True}
+            'password': {'write_only': True},
+            'last_login': {'write_only': True},
+            'is_admin': {'write_only': True}
         }
 
 
@@ -35,7 +32,11 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = '__all__'
         extra_kwargs = {
             'group_logo': {'required': False},
-            'group_cover': {'required': False}
+            'group_cover': {'required': False},
+            'group_category': {'required': False},
+            'group_belong': {'required': False},
+            'group_place': {'required': False},
+            'group_description': {'required': False}
         }
 
 

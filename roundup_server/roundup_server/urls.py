@@ -22,13 +22,23 @@ Including another URLconf
 from django.contrib import admin
 from django.conf.urls import url, include
 from rest_framework import routers
-from api_v1 import views
+from api_v1.views import UserViewSet
 
 router = routers.DefaultRouter()
-router.register(r'auth_users', views.AuthUserViewSet)
+router.register(r'auth_users', UserViewSet)
+print router.urls
+# print router.urls
+# user_insert = UserViewSet.as_view({
+#     'post': 'create'
+# })
+# user_detail = UserViewSet.as_view({
+#     'get' : 'retrieve'
+# })
 
 urlpatterns = [
     url(r'^', include(router.urls)),
+    # url(r'^auth_users/(?P<pk>[0-9]+)/$', user_detail, name='user_detail'),
+    # url(r'^auth_users/$', user_insert, name='user_insert'),
     url(r'^api_v1/', include('api_v1.urls', namespace='api_v1')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^admin/', admin.site.urls),
