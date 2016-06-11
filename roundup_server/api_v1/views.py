@@ -82,10 +82,11 @@ class GroupViewSet(viewsets.ModelViewSet):
     serializer_class = GroupSerializer
     renderer_classes = (JSONRenderer, )
 
-    def list(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid()
-        email = serializer.data['group_leader_email']
+
+    def list_by_user(self, request, group_leader_email):
+        #serializer = self.get_serializer(data=request.data)
+        #serializer.is_valid()
+        email = group_leader_email#serializer.data['group_leader_email']
         if email is not None:
             result = {}
             inst = Group.objects.filter_group_by_leader(email)
@@ -105,7 +106,7 @@ class GroupViewSet(viewsets.ModelViewSet):
             result = json.dumps(result)
             if inst is not None:
                 return HttpResponse(result, status=status.HTTP_200_OK)#, headers=headers)
-        return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse('{"message" : "no email passed"}', status=status.HTTP_400_BAD_REQUEST)
 
 
 

@@ -31,6 +31,10 @@ group_detail = views.GroupViewSet.as_view({
     'delete': 'destroy'
 })
 
+group_list_by_user = views.GroupViewSet.as_view({
+    'post': 'list_by_user',
+})
+
 group_user_level_list = views.GroupUserLevelViewSet.as_view({
     'get': 'list',
     'post': 'create',
@@ -68,6 +72,7 @@ urlpatterns = [
     url(r'^user/$', user_list, name='user_list'),
     url(r'^user/check/', user_chk, name='chk_password'),
     url(r'^user/(?P<pk>[^/]+)/$', user_detail, name='user_detail'),
+    url(r'^user/group/(?P<group_leader_email>[^/]+)/$', group_list_by_user, name='group_list_by_user'),
     url(r'^group/$', group_list, name='group_list'),
     url(r'^group/(?P<pk>[^/]+)/$', group_detail, name='group_detail'),
     url(r'^group_user_level/$', group_user_level_list, name='group_user_level_list'),
