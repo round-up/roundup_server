@@ -77,31 +77,11 @@ class GroupUserManager(models.Manager):
 
 
 class GroupFeedsManager(models.Manager):
-    def add_new_feed(self, data):
-        try:
-            # get keys
-            group_id = data['group_id']
-            email = data['email']
 
-            # get instances with keys
-            group_inst = Group.objects.get(id=group_id)
-            user_inst = UserExtend.objects.get(email=email)
-
-            del data['group_id']
-            del data['email']
-
-            # mk model
-            model = GroupFeeds.objects.model(group_id=group_inst, email=user_inst, **data)
-            model.save()
-        except Exception, e:
-            print e.message
-            return FAILED_TO_EXCEED
-        return SUCCESS_TO_EXCEED
-
-    def get_feeds_by_user(self, email):
-        user_inst = UserExtend.objects.get(email=email)
+    def get_home_feeds(self, email):
         group_user_inst = GroupUsers.objects.filter(email=email)
 
+        print group_user_inst
 
 
 class UserExtend(AbstractBaseUser):
