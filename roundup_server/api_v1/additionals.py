@@ -16,9 +16,8 @@ ALLOWED_IMAGE_TYPES = (
 )
 
 
-SUCCESS_TO_EXCEED = {
-    'result' : 'success'
-}
+SUCCESS_TO_EXCEED = {'result' : 'success'}
+FAILED_TO_EXCEED = {'result': 'fail'}
 
 
 class Base64ImageField(fields.ImageField):

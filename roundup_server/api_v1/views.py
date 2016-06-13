@@ -1,7 +1,7 @@
 # -*- coding : utf-8 -*-
 from rest_framework import viewsets
 from serializers import *
-from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupBulletins, GroupSchedules
+from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupFeeds, GroupSchedules
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from rest_framework import status
@@ -169,11 +169,21 @@ class GroupUsersViewSet(viewsets.ModelViewSet):
             result = json.dumps(result)
             return HttpResponse(result, status=status.HTTP_200_OK)
 
-class GroupBulletinsViewSet(viewsets.ModelViewSet):
-    queryset = GroupBulletins.objects.all()
-    serializer_class = GroupBulletinsSerializer
+class GroupFeedsViewSet(viewsets.ModelViewSet):
+    queryset = GroupFeeds.objects.all()
+    serializer_class = GroupFeedsSerializer
     renderer_classes = (JSONRenderer, )
 
+    def add_new_feed(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid()
+        if serializer.data is not None :
+            result = GroupFeeds.objects.add_new_feed(serializer.data)
+            if result['result'] == 'fail':
+                return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
 class GroupSchedulesViewSet(viewsets.ModelViewSet):
     queryset = GroupSchedules.objects.all()

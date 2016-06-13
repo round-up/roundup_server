@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
-from additionals import SUCCESS_TO_EXCEED
+from additionals import SUCCESS_TO_EXCEED, FAILED_TO_EXCEED
 
 
 class UserExtendManager(BaseUserManager):
@@ -54,11 +54,8 @@ class GroupUserManager(models.Manager):
     def add_group_user(self, group_id, email):
         group_inst = Group.objects.get(id=group_id)
         user_inst = UserExtend.objects.get(email=email)
-        print group_inst
-        print user_inst
         try:
             new_group_user = GroupUsers(group_id=group_inst, email=user_inst)
-            print new_group_user
             new_group_user.save()
         except Exception, e:
             print e.message
@@ -70,13 +67,40 @@ class GroupUserManager(models.Manager):
         group_user_list = GroupUsers.objects.filter(group_id=group_inst)
         return group_user_list
 
-    def delete_by_useremail(self, user_email):
-        user_inst = UserExtend.objects.model(email=user_email)
+    def delete_by_useremail(self, email):
+        user_inst = UserExtend.objects.model(email=email)
         try:
-            GroupUsers.objects.filter(user_email=user_inst).delete()
+            GroupUsers.objects.filter(email=user_inst).delete()
         except Exception:
             return None
         return SUCCESS_TO_EXCEED
+
+
+class GroupFeedsManager(models.Manager):
+    def add_new_feed(self, data):
+        try:
+            # get keys
+            group_id = data['group_id']
+            email = data['email']
+
+            # get instances with keys
+            group_inst = Group.objects.get(id=group_id)
+            user_inst = UserExtend.objects.get(email=email)
+
+            del data['group_id']
+            del data['email']
+
+            # mk model
+            model = GroupFeeds.objects.model(group_id=group_inst, email=user_inst, **data)
+            model.save()
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+        return SUCCESS_TO_EXCEED
+
+    def get_feeds_by_user(self, email):
+        user_inst = UserExtend.objects.get(email=email)
+        group_user_inst = GroupUsers.objects.filter(email=email)
 
 
 
@@ -193,23 +217,25 @@ class GroupUsers(models.Model):
         unique_together = ('group_id', 'email', )
 
 
-class GroupBulletins(models.Model):
+class GroupFeeds(models.Model):
     group_id = models.ForeignKey(Group)
-    user_email = models.ForeignKey(UserExtend)
-    bulletin_type = models.CharField(max_length=10)
-    bulletin_title = models.CharField(max_length=100)
-    bulletin_date = models.DateTimeField(auto_now=True)
-    bulletin_content = models.TextField()
-    bulletin_access_modifier = models.IntegerField(default=1)
-    bulletin_attachment = models.FileField()
-    bulletin_tags = models.TextField()
+    email = models.ForeignKey(UserExtend)
+    feed_type = models.CharField(max_length=10)
+    feed_title = models.CharField(max_length=100)
+    feed_date = models.DateTimeField(auto_now=True)
+    feed_content = models.TextField(blank=True)
+    feed_access_modifier = models.IntegerField(default=1)
+    feed_image = models.TextField(default='')
+    feed_tags = models.TextField(blank=True)
+
+    objects = GroupFeedsManager()
 
     class Meta:
-        ordering = ('-bulletin_date',)
+        ordering = ('-feed_date',)
 
 
 class GroupSchedules(models.Model):
-    bulletin_id = models.ForeignKey(GroupBulletins)
+    bulletin_id = models.ForeignKey(GroupFeeds)
     schedule_start_date = models.DateTimeField(auto_now=True)
     schedule_end_date = models.DateTimeField(auto_now=True)
     schedule_place = models.CharField(max_length=100)
