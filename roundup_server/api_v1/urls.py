@@ -29,7 +29,7 @@ group_root = views.GroupViewSet.as_view({
 })
 
 group_detail = views.GroupViewSet.as_view({
-    'get': 'retrieve',
+    'get': 'group_detail',
     'put': 'update',
     'patch': 'partial_update',
     'delete': 'destroy'
@@ -65,8 +65,11 @@ group_user_detail = views.GroupUsersViewSet.as_view({
 
 # group feeds
 
+home_feed_root = views.GroupFeedsViewSet.as_view({
+    'get': 'get_home_feeds',
+})
+
 group_feed_root = views.GroupFeedsViewSet.as_view({
-    'get': 'list',
     'post': 'create',
 })
 
@@ -94,4 +97,5 @@ urlpatterns = [
     url(r'^group_user/$', group_user_root, name='group_user_list'),
     url(r'^group_user/(?P<pk>[^/]+)/$', group_user_detail, name='group_user_detail'),
     url(r'^group_feed/$', group_feed_root, name='group_feed_root'),
+    url(r'^home_feed/$', home_feed_root, name='home_feed_root'),
 ]
