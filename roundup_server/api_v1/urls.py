@@ -29,7 +29,7 @@ group_root = views.GroupViewSet.as_view({
 })
 
 group_detail = views.GroupViewSet.as_view({
-    'get': 'retrieve',
+    'get': 'group_detail',
     'put': 'update',
     'patch': 'partial_update',
     'delete': 'destroy'

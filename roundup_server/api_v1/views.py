@@ -10,6 +10,8 @@ from django.core.files.base import ContentFile
 from rest_framework.decorators import detail_route
 from django.core import serializers
 import json
+from django.forms.models import model_to_dict
+from datetime import date
 import dateutil.parser
 from permissions import IsAnonCreate
 from django.shortcuts import get_object_or_404
@@ -82,6 +84,34 @@ class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all().order_by('-group_name')
     serializer_class = GroupSerializer
     renderer_classes = (JSONRenderer, )
+
+    @detail_route(renderer_classes=[JSONRenderer])
+    def group_detail(self, request, *args, **kwargs):
+        super_result = super(GroupViewSet, self).retrieve(request, args, kwargs)
+        try:
+            d = super_result.data
+            group_id = d['id']
+            leader = UserExtend.objects.get_by_natural_key(d['group_leader_email'])
+            users = GroupUsers.objects.get_all_users_in_group(group_id)
+            d['users'] = [model_to_dict(leader)]
+            # get detail user info
+            for user in users:
+                email = model_to_dict(user)['email']
+                user_info = UserExtend.objects.get_by_natural_key(email)
+                d['users'].append(model_to_dict(user_info))
+
+            # check date time
+            for idx, user in enumerate(d['users']):
+                print user
+                if type(user['user_birth']) == date:
+                    user['user_birth'] = user['user_birth'].strftime('yyyy-MM-dd')
+                    d['users'][idx] = user
+                print user
+            print json.dumps(d)
+            return HttpResponse(json.dumps(d), status=status.HTTP_200_OK)
+        except Exception, e:
+            print e.message
+            return HttpResponse('{"message" : "404 bad request"}', status=status.HTTP_400_BAD_REQUEST)
 
 
     def list_by_user(self, request, group_leader_email):
