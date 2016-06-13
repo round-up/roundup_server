@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupBulletins, GroupSchedules
+from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupFeeds, GroupSchedules
 from additionals import Base64ImageField
 
 # Service User
@@ -58,9 +58,9 @@ class GroupUsersSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class GroupBulletinsSerializer(serializers.ModelSerializer):
+class GroupFeedsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = GroupBulletins
+        model = GroupFeeds
         fields = '__all__'
 
 
