@@ -10,6 +10,7 @@ from django.core.files.base import ContentFile
 from rest_framework.decorators import detail_route
 from django.core import serializers
 import json
+import dateutil.parser
 from permissions import IsAnonCreate
 from django.shortcuts import get_object_or_404
 
@@ -174,13 +175,29 @@ class GroupFeedsViewSet(viewsets.ModelViewSet):
     serializer_class = GroupFeedsSerializer
     renderer_classes = (JSONRenderer, )
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid()
+        if serializer.data is not None :
+            result = GroupFeeds.objects.create(serializer.data)
+            if result['result'] == 'fail':
+                return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
     def get_home_feeds(self, request):
         serializers = self.get_serializer(data=request.data)
         serializers.is_valid()
         if serializers.data is not None :
             email = serializers.data['email']
             result = GroupFeeds.objects.get_home_feeds(email)
-        return HttpResponse("{'message':'test is going on~'}", status=status.HTTP_200_OK)
+        return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+
+    def get_group_feeds(self, request):
+        serializers = self.get_serializer(data=request.data)
+        serializers.is_valid()
+
 
 
 class GroupSchedulesViewSet(viewsets.ModelViewSet):

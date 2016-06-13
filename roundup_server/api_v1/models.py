@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
+from django.forms.models import model_to_dict
 from additionals import SUCCESS_TO_EXCEED, FAILED_TO_EXCEED
+from datetime import date
 
 
 class UserExtendManager(BaseUserManager):
@@ -78,10 +80,56 @@ class GroupUserManager(models.Manager):
 
 class GroupFeedsManager(models.Manager):
 
+    # def add_new_feed(self, email):
+    #
+
+    def create(self, data):
+        try:
+            group_id = data['group_id']
+            email = data['email']
+
+            group_inst = Group.objects.get(id=group_id)
+            user_inst = UserExtend.objects.get(email=email)
+
+            del data['group_id']
+            del data['email']
+
+            model = GroupFeeds.objects.model(group_id=group_inst, email=user_inst, **data)
+            model.save()
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+        return SUCCESS_TO_EXCEED
+
     def get_home_feeds(self, email):
         group_user_inst = GroupUsers.objects.filter(email=email)
+        result = {'session':[], 'normal':[]}
+        for item in group_user_inst:
+            d = model_to_dict(item)
+            group_id = d['group_id']
+            result['session'].extend(self.get_session_feeds(group_id))
+            result['normal'].extend(self.get_hot_feeds(group_id))
 
-        print group_user_inst
+        # leader add
+        group_inst = Group.objects.get(group_leader_email=email)
+        d = model_to_dict(group_inst)
+        group_id = d['id']
+        result['session'].extend(self.get_session_feeds(group_id))
+        result['normal'].extend(self.get_hot_feeds(group_id))
+        return result
+
+    def get_feeds(self, group_id, feed_type='normal', k=2):
+        group_inst = Group.objects.get(id=group_id)
+        result = [model_to_dict(x) for x in GroupFeeds.objects.filter(group_id=group_inst, feed_type=feed_type)[:k]]
+        for item in result:
+            item['feed_date'] = item['feed_date'].strftime('yyyy-MM-dd HH:mm:ss')
+        return result
+
+    def get_session_feeds(self, group_id, k=2):
+        return self.get_feeds(group_id, feed_type='session', k=k)
+
+    def get_hot_feeds(self, group_id, k=2):
+        return self.get_feeds(group_id, feed_type='normal', k=k)
 
 
 class UserExtend(AbstractBaseUser):
@@ -202,7 +250,7 @@ class GroupFeeds(models.Model):
     email = models.ForeignKey(UserExtend)
     feed_type = models.CharField(max_length=10)
     feed_title = models.CharField(max_length=100)
-    feed_date = models.DateTimeField(auto_now=True)
+    feed_date = models.DateTimeField()#auto_now=True)
     feed_content = models.TextField(blank=True)
     feed_access_modifier = models.IntegerField(default=1)
     feed_image = models.TextField(default='')

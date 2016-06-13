@@ -69,7 +69,7 @@ home_feed_root = views.GroupFeedsViewSet.as_view({
     'get': 'get_home_feeds',
 })
 
-group_feed_root = views.GroupUsersViewSet.as_view({
+group_feed_root = views.GroupFeedsViewSet.as_view({
     'post': 'create',
 })
 
