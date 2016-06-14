@@ -262,6 +262,56 @@ class GroupFeeds(models.Model):
         ordering = ('-feed_date',)
 
 
+class FeedCommentManager(models.Manager):
+    def get_comments_by_feed_id(self, feed_id):
+        comment_list = FeedComment.objects.filter(feed_id=feed_id)
+        return map(model_to_dict, comment_list)
+
+
+# Feed Additionals : comments, like, multi-saved images
+class FeedComment(models.Model):
+    feed_id = models.ForeignKey(GroupFeeds)
+    email = models.ForeignKey(UserExtend)
+    comment_title = models.CharField(max_length=100)
+    comment_content = models.TextField(blank=True, default='You should put the content')
+    comment_date = models.DateTimeField()
+
+    objects = FeedCommentManager()
+
+    class Meta:
+        ordering = ('comment_date',)
+
+
+class FeedLikeManager(models.Manager):
+    def get_likes_by_feed_id(self, feed_id):
+        like_list = FeedLike.objects.filter(feed_id=feed_id)
+        return map(model_to_dict, like_list)
+
+
+class FeedLike(models.Model):
+    feed_id = models.ForeignKey(GroupFeeds)
+    email = models.ForeignKey(UserExtend)
+    like_date = models.DateTimeField(auto_now=True)
+
+    objects = FeedLikeManager()
+
+    class Meta:
+        ordering = ('like_date',)
+
+
+class FeedImageManager(models.Manager):
+    def get_images_by_feed_id(self, feed_id):
+        image_list = FeedImage.objects.filter(feed_id=feed_id)
+        return map(model_to_dict, image_list)
+
+
+class FeedImage(models.Model):
+    feed_id = models.ForeignKey(GroupFeeds)
+    feed_image = models.TextField(blank=True)
+
+    objects = FeedImageManager()
+
+
 class GroupSchedules(models.Model):
     bulletin_id = models.ForeignKey(GroupFeeds)
     schedule_start_date = models.DateTimeField(auto_now=True)

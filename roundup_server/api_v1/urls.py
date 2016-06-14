@@ -83,6 +83,9 @@ router.register(r'united_group', views.UnitedGroupViewSet)
 #router.register(r'group_user', views.GroupUsersViewSet)
 #router.register(r'group_bulletin', views.GroupFeedsViewSet)
 router.register(r'group_schedule', views.GroupSchedulesViewSet)
+router.register(r'feed_comment', views.FeedCommentViewSet)
+router.register(r'feed_like', views.FeedLikeViewSet)
+router.register(r'feed_image', views.FeedImageViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),

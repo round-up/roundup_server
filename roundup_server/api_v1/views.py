@@ -200,6 +200,7 @@ class GroupUsersViewSet(viewsets.ModelViewSet):
             result = json.dumps(result)
             return HttpResponse(result, status=status.HTTP_200_OK)
 
+
 class GroupFeedsViewSet(viewsets.ModelViewSet):
     queryset = GroupFeeds.objects.all()
     serializer_class = GroupFeedsSerializer
@@ -228,6 +229,23 @@ class GroupFeedsViewSet(viewsets.ModelViewSet):
         serializers = self.get_serializer(data=request.data)
         serializers.is_valid()
 
+
+class FeedCommentViewSet(viewsets.ModelViewSet):
+    queryset = FeedComment.objects.all()
+    serializers_class = FeedCommentSerializer
+    renderer_classes = (JSONRenderer, )
+
+
+class FeedImageViewSet(viewsets.ModelViewSet):
+    queryset = FeedImage.objects.all()
+    serializer_class = FeedImageSerializer
+    renderer_classes = (JSONRenderer, )
+
+
+class FeedLikeViewSet(viewsets.ModelViewSet):
+    queryset = FeedLike.objects.all()
+    serializer_class = FeedLikeSerializer
+    renderer_classes = (JSONRenderer, )
 
 
 class GroupSchedulesViewSet(viewsets.ModelViewSet):
