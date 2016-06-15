@@ -87,15 +87,21 @@ class GroupFeedsManager(models.Manager):
         try:
             group_id = data['group_id']
             email = data['email']
+            image_list = data['image_list']
 
             group_inst = Group.objects.get(id=group_id)
             user_inst = UserExtend.objects.get(email=email)
 
             del data['group_id']
             del data['email']
+            del data['image_list']
 
             model = GroupFeeds.objects.model(group_id=group_inst, email=user_inst, **data)
             model.save()
+
+            #add images
+            feed_id = model.__dict__['id']
+            FeedImage.objects.add_images(feed_id, image_list)
         except Exception, e:
             print e.message
             return FAILED_TO_EXCEED
@@ -122,7 +128,28 @@ class GroupFeedsManager(models.Manager):
         group_inst = Group.objects.get(id=group_id)
         result = [model_to_dict(x) for x in GroupFeeds.objects.filter(group_id=group_inst, feed_type=feed_type)[:k]]
         for item in result:
-            item['feed_date'] = item['feed_date'].strftime('yyyy-MM-dd HH:mm:ss')
+            item['image_list'] = self.add_image_list(item)
+            item['comment_list'] = FeedComment.objects.get_comments_by_feed_id(item['id'])
+            item['like_list'] = FeedLike.objects.get_likes_by_feed_id(item['id'])
+            item['feed_date'] = item['feed_date'].strftime('')
+        return result
+
+    def add_image_list(self, feed_data):
+        feed_id = feed_data['id']
+        return map(model_to_dict, FeedImage.objects.filter(feed_id=feed_id))
+
+    def add_comment_list(self, feed_data):
+        feed_id = feed_data['id']
+        result = map(model_to_dict, FeedComment.objects.filter(feed_id=feed_id))
+        for item in result:
+            item['comment_date'] = item['comment_date'].strftime('%Y-%m-%d %H:%m:%S')
+        return result
+
+    def add_like_list(self, feed_data):
+        feed_id = feed_data['id']
+        result = map(model_to_dict, FeedLike.objects.filter(feed_id=feed_id))
+        for item in result:
+            item['like_date'] = item['like_date'].strftime('%Y-%m-%d %H:%m:%S')
         return result
 
     def get_session_feeds(self, group_id, k=2):
@@ -259,7 +286,7 @@ class GroupFeeds(models.Model):
     objects = GroupFeedsManager()
 
     class Meta:
-        ordering = ('-feed_date',)
+        ordering = ('feed_date',)
 
 
 class FeedCommentManager(models.Manager):
@@ -365,14 +392,11 @@ class FeedImageManager(models.Manager):
         image_list = FeedImage.objects.filter(feed_id=feed_id)
         return map(model_to_dict, image_list)
 
-    def add_images(self, data):
+    def add_images(self, feed_id, image_list):
         try:
-            print data
-            feed_id = data['feed_id']
             feed_inst = GroupFeeds.objects.get(id=feed_id)
-            del data['feed_id']
 
-            for img_data in data['feed_image']:
+            for img_data in image_list:
                 model = FeedImage.objects.model(feed_id=feed_inst, feed_image=img_data)
                 model.save()
 

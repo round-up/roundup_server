@@ -207,10 +207,16 @@ class GroupFeedsViewSet(viewsets.ModelViewSet):
     renderer_classes = (JSONRenderer, )
 
     def create(self, request, *args, **kwargs):
+        if 'image_list' in request.data:
+            image_list = request.data['image_list']
+            del request.data['image_list']
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid()
+        data = dict(serializer.data)
+        data['image_list'] = image_list
+        #serializer.data['image_list'] = image_list
         if serializer.data is not None :
-            result = GroupFeeds.objects.create(serializer.data)
+            result = GroupFeeds.objects.create(data)
             if result['result'] == 'fail':
                 return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
             else:
