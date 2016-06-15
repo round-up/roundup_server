@@ -232,8 +232,19 @@ class GroupFeedsViewSet(viewsets.ModelViewSet):
 
 class FeedCommentViewSet(viewsets.ModelViewSet):
     queryset = FeedComment.objects.all()
-    serializers_class = FeedCommentSerializer
+    serializer_class = FeedCommentSerializer
     renderer_classes = (JSONRenderer, )
+
+    def add_comment(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid()
+        if serializer.data is not None :
+            result = FeedComment.objects.add_comment(serializer.data)
+            if result['result'] == 'fail':
+                return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
 
 class FeedImageViewSet(viewsets.ModelViewSet):
@@ -246,6 +257,17 @@ class FeedLikeViewSet(viewsets.ModelViewSet):
     queryset = FeedLike.objects.all()
     serializer_class = FeedLikeSerializer
     renderer_classes = (JSONRenderer, )
+
+    def add_like(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid()
+        if serializer.data is not None :
+            result = FeedLike.objects.add_comment(serializer.data)
+            if result['result'] == 'fail':
+                return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
 
 class GroupSchedulesViewSet(viewsets.ModelViewSet):

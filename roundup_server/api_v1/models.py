@@ -253,7 +253,7 @@ class GroupFeeds(models.Model):
     feed_date = models.DateTimeField()#auto_now=True)
     feed_content = models.TextField(blank=True)
     feed_access_modifier = models.IntegerField(default=1)
-    feed_image = models.TextField(default='')
+    #feed_image = models.TextField(default='')
     feed_tags = models.TextField(blank=True)
 
     objects = GroupFeedsManager()
@@ -266,6 +266,24 @@ class FeedCommentManager(models.Manager):
     def get_comments_by_feed_id(self, feed_id):
         comment_list = FeedComment.objects.filter(feed_id=feed_id)
         return map(model_to_dict, comment_list)
+
+    def add_comment(self, data):
+        try:
+            print data
+            feed_id = data['feed_id']
+            email = data['email']
+            feed_inst = GroupFeeds.objects.get(id=feed_id)
+            user_inst = UserExtend.objects.get(email=email)
+
+            del data['feed_id']
+            del data['email']
+
+            model = FeedComment.objects.model(feed_id=feed_inst, email=user_inst, **data)
+            model.save()
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+        return SUCCESS_TO_EXCEED
 
 
 # Feed Additionals : comments, like, multi-saved images
@@ -287,6 +305,22 @@ class FeedLikeManager(models.Manager):
         like_list = FeedLike.objects.filter(feed_id=feed_id)
         return map(model_to_dict, like_list)
 
+    def add_like(self, data):
+        try:
+            feed_id = data['feed_id']
+            email = data['email']
+            feed_inst = GroupFeeds.objects.get(id=feed_id)
+            user_inst = UserExtend.objects.get(email=email)
+
+            del data['feed_id']
+            del data['email']
+
+            model = FeedLike.objects.model(feed_id=feed_inst, email=user_inst, **data)
+            model.save()
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+        return SUCCESS_TO_EXCEED
 
 class FeedLike(models.Model):
     feed_id = models.ForeignKey(GroupFeeds)
@@ -303,6 +337,22 @@ class FeedImageManager(models.Manager):
     def get_images_by_feed_id(self, feed_id):
         image_list = FeedImage.objects.filter(feed_id=feed_id)
         return map(model_to_dict, image_list)
+
+    def add_images(self, data):
+        try:
+            print data
+            feed_id = data['feed_id']
+            feed_inst = GroupFeeds.objects.get(id=feed_id)
+            del data['feed_id']
+
+            for img_data in data['feed_image']:
+                model = FeedImage.objects.model(feed_id=feed_inst, feed_image=img_data)
+                model.save()
+
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+        return SUCCESS_TO_EXCEED
 
 
 class FeedImage(models.Model):
