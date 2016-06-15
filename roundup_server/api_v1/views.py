@@ -200,16 +200,23 @@ class GroupUsersViewSet(viewsets.ModelViewSet):
             result = json.dumps(result)
             return HttpResponse(result, status=status.HTTP_200_OK)
 
+
 class GroupFeedsViewSet(viewsets.ModelViewSet):
     queryset = GroupFeeds.objects.all()
     serializer_class = GroupFeedsSerializer
     renderer_classes = (JSONRenderer, )
 
     def create(self, request, *args, **kwargs):
+        if 'image_list' in request.data:
+            image_list = request.data['image_list']
+            del request.data['image_list']
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid()
+        data = dict(serializer.data)
+        data['image_list'] = image_list
+        #serializer.data['image_list'] = image_list
         if serializer.data is not None :
-            result = GroupFeeds.objects.create(serializer.data)
+            result = GroupFeeds.objects.create(data)
             if result['result'] == 'fail':
                 return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
             else:
@@ -229,6 +236,74 @@ class GroupFeedsViewSet(viewsets.ModelViewSet):
         serializers.is_valid()
 
 
+class FeedCommentViewSet(viewsets.ModelViewSet):
+    queryset = FeedComment.objects.all()
+    serializer_class = FeedCommentSerializer
+    renderer_classes = (JSONRenderer, )
+
+    def get_comment_by_feed_id(self, request):
+        if request.data is not None:
+            feed_id = request.data['feed_id']
+            result = FeedComment.objects.get_comments_by_feed_id(feed_id=feed_id)
+            if 'result' in result:
+                return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
+    def add_comment(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid()
+        if serializer.data is not None :
+            result = FeedComment.objects.add_comment(serializer.data)
+            if result['result'] == 'fail':
+                return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
+
+class FeedImageViewSet(viewsets.ModelViewSet):
+    queryset = FeedImage.objects.all()
+    serializer_class = FeedImageSerializer
+    renderer_classes = (JSONRenderer, )
+
+
+class FeedLikeViewSet(viewsets.ModelViewSet):
+    queryset = FeedLike.objects.all()
+    serializer_class = FeedLikeSerializer
+    renderer_classes = (JSONRenderer, )
+
+    def add_like(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid()
+        if serializer.data is not None :
+            result = FeedLike.objects.add_like(serializer.data)
+            if result['result'] == 'fail':
+                return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
+    def get_likes_by_feed_id(self, request, feed_id):
+        if feed_id is not None:
+            #feed_id = request.data['feed_id']
+            result = FeedLike.objects.get_likes_by_feed_id(feed_id=feed_id)
+            if 'result' in result:
+                return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
+    def get_like_count(self, request):
+        if request.data is not None:
+            feed_id = request.data['feed_id']
+            result = FeedLike.objects.get_like_count(feed_id=feed_id)
+            if 'result' in result:
+                return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
 class GroupSchedulesViewSet(viewsets.ModelViewSet):
     queryset = GroupSchedules.objects.all()

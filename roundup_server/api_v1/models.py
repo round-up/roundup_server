@@ -87,15 +87,21 @@ class GroupFeedsManager(models.Manager):
         try:
             group_id = data['group_id']
             email = data['email']
+            image_list = data['image_list']
 
             group_inst = Group.objects.get(id=group_id)
             user_inst = UserExtend.objects.get(email=email)
 
             del data['group_id']
             del data['email']
+            del data['image_list']
 
             model = GroupFeeds.objects.model(group_id=group_inst, email=user_inst, **data)
             model.save()
+
+            #add images
+            feed_id = model.__dict__['id']
+            FeedImage.objects.add_images(feed_id, image_list)
         except Exception, e:
             print e.message
             return FAILED_TO_EXCEED
@@ -122,7 +128,28 @@ class GroupFeedsManager(models.Manager):
         group_inst = Group.objects.get(id=group_id)
         result = [model_to_dict(x) for x in GroupFeeds.objects.filter(group_id=group_inst, feed_type=feed_type)[:k]]
         for item in result:
-            item['feed_date'] = item['feed_date'].strftime('yyyy-MM-dd HH:mm:ss')
+            item['image_list'] = self.add_image_list(item)
+            item['comment_list'] = FeedComment.objects.get_comments_by_feed_id(item['id'])
+            item['like_list'] = FeedLike.objects.get_likes_by_feed_id(item['id'])
+            item['feed_date'] = item['feed_date'].strftime('')
+        return result
+
+    def add_image_list(self, feed_data):
+        feed_id = feed_data['id']
+        return map(model_to_dict, FeedImage.objects.filter(feed_id=feed_id))
+
+    def add_comment_list(self, feed_data):
+        feed_id = feed_data['id']
+        result = map(model_to_dict, FeedComment.objects.filter(feed_id=feed_id))
+        for item in result:
+            item['comment_date'] = item['comment_date'].strftime('%Y-%m-%d %H:%m:%S')
+        return result
+
+    def add_like_list(self, feed_data):
+        feed_id = feed_data['id']
+        result = map(model_to_dict, FeedLike.objects.filter(feed_id=feed_id))
+        for item in result:
+            item['like_date'] = item['like_date'].strftime('%Y-%m-%d %H:%m:%S')
         return result
 
     def get_session_feeds(self, group_id, k=2):
@@ -253,13 +280,137 @@ class GroupFeeds(models.Model):
     feed_date = models.DateTimeField()#auto_now=True)
     feed_content = models.TextField(blank=True)
     feed_access_modifier = models.IntegerField(default=1)
-    feed_image = models.TextField(default='')
+    #feed_image = models.TextField(default='')
     feed_tags = models.TextField(blank=True)
 
     objects = GroupFeedsManager()
 
     class Meta:
-        ordering = ('-feed_date',)
+        ordering = ('feed_date',)
+
+
+class FeedCommentManager(models.Manager):
+    def get_comments_by_feed_id(self, feed_id):
+        try:
+            comment_list = FeedComment.objects.filter(feed_id=feed_id)
+            comment_list = map(model_to_dict, comment_list)
+            for comment_index in range(len(comment_list)):
+                comment_list[comment_index]['comment_date'] = comment_list[comment_index]['comment_date'].strftime('%Y-%m-%d %H:%m:%S')
+            return comment_list
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+
+    def add_comment(self, data):
+        try:
+            print data
+            feed_id = data['feed_id']
+            email = data['email']
+            feed_inst = GroupFeeds.objects.get(id=feed_id)
+            user_inst = UserExtend.objects.get(email=email)
+
+            del data['feed_id']
+            del data['email']
+
+            model = FeedComment.objects.model(feed_id=feed_inst, email=user_inst, **data)
+            model.save()
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+        return SUCCESS_TO_EXCEED
+
+
+# Feed Additionals : comments, like, multi-saved images
+class FeedComment(models.Model):
+    feed_id = models.ForeignKey(GroupFeeds)
+    email = models.ForeignKey(UserExtend)
+    comment_title = models.CharField(max_length=100)
+    comment_content = models.TextField(blank=True, default='You should put the content')
+    comment_date = models.DateTimeField()
+
+    objects = FeedCommentManager()
+
+    class Meta:
+        ordering = ('comment_date',)
+
+
+class FeedLikeManager(models.Manager):
+    def get_likes_by_feed_id(self, feed_id):
+        try:
+            like_list_temp = FeedLike.objects.filter(feed_id=feed_id)
+            like_list = []
+            for idx in range(len(like_list_temp)):
+                temp = like_list_temp[idx].__dict__
+                del temp['_state']
+                like_list.append(temp)
+            print like_list
+            for idx in range(len(like_list)):
+                like_list[idx]['like_date'] = like_list[idx]['like_date'].strftime('%Y-%m-%d %H:%m:%S')
+            return like_list
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+
+    def get_like_count(self, feed_id):
+        try:
+            like_list = FeedLike.objects.filter(feed_id=feed_id)
+            return {'result': len(like_list)}
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+
+    def add_like(self, data):
+        try:
+            feed_id = data['feed_id']
+            email = data['email']
+            feed_inst = GroupFeeds.objects.get(id=feed_id)
+            user_inst = UserExtend.objects.get(email=email)
+
+            del data['feed_id']
+            del data['email']
+
+            model = FeedLike.objects.model(feed_id=feed_inst, email=user_inst, **data)
+            model.save()
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+        return SUCCESS_TO_EXCEED
+
+class FeedLike(models.Model):
+    feed_id = models.ForeignKey(GroupFeeds)
+    email = models.ForeignKey(UserExtend)
+    like_date = models.DateTimeField(auto_now=True)
+
+    objects = FeedLikeManager()
+
+    class Meta:
+        ordering = ('like_date',)
+
+
+class FeedImageManager(models.Manager):
+    def get_images_by_feed_id(self, feed_id):
+        image_list = FeedImage.objects.filter(feed_id=feed_id)
+        return map(model_to_dict, image_list)
+
+    def add_images(self, feed_id, image_list):
+        try:
+            feed_inst = GroupFeeds.objects.get(id=feed_id)
+
+            for img_data in image_list:
+                model = FeedImage.objects.model(feed_id=feed_inst, feed_image=img_data)
+                model.save()
+
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+        return SUCCESS_TO_EXCEED
+
+
+class FeedImage(models.Model):
+    feed_id = models.ForeignKey(GroupFeeds)
+    feed_image = models.TextField(blank=True)
+
+    objects = FeedImageManager()
 
 
 class GroupSchedules(models.Model):
