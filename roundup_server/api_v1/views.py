@@ -235,6 +235,16 @@ class FeedCommentViewSet(viewsets.ModelViewSet):
     serializer_class = FeedCommentSerializer
     renderer_classes = (JSONRenderer, )
 
+    def get_comment_by_feed_id(self, request):
+        if request.data is not None:
+            feed_id = request.data['feed_id']
+            result = FeedComment.objects.get_comments_by_feed_id(feed_id=feed_id)
+            if 'result' in result:
+                return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
     def add_comment(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid()
@@ -258,17 +268,36 @@ class FeedLikeViewSet(viewsets.ModelViewSet):
     serializer_class = FeedLikeSerializer
     renderer_classes = (JSONRenderer, )
 
-    def add_like(self, request, *args, **kwargs):
+    def add_like(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid()
         if serializer.data is not None :
-            result = FeedLike.objects.add_comment(serializer.data)
+            result = FeedLike.objects.add_like(serializer.data)
             if result['result'] == 'fail':
                 return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
             else:
                 return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
+    def get_likes_by_feed_id(self, request, feed_id):
+        if feed_id is not None:
+            #feed_id = request.data['feed_id']
+            result = FeedLike.objects.get_likes_by_feed_id(feed_id=feed_id)
+            if 'result' in result:
+                return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
+    def get_like_count(self, request):
+        if request.data is not None:
+            feed_id = request.data['feed_id']
+            result = FeedLike.objects.get_like_count(feed_id=feed_id)
+            if 'result' in result:
+                return HttpResponse(json.dumps(result), status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
 class GroupSchedulesViewSet(viewsets.ModelViewSet):
     queryset = GroupSchedules.objects.all()

@@ -77,6 +77,7 @@ group_feed_root = views.GroupFeedsViewSet.as_view({
 
 feed_comment_root = views.FeedCommentViewSet.as_view({
     'post': 'add_comment',
+    'get': 'get_comment_by_feed_id',
 })
 
 feed_comment_detail = views.FeedCommentViewSet.as_view({
@@ -89,9 +90,11 @@ feed_comment_detail = views.FeedCommentViewSet.as_view({
 
 feed_like_root = views.FeedLikeViewSet.as_view({
     'post': 'add_like',
+    'get': 'get_like_count',
 })
 
 feed_like_detail = views.FeedLikeViewSet.as_view({
+    'get': 'get_likes_by_feed_id',
     'delete': 'destroy',
 })
 
@@ -106,7 +109,7 @@ router.register(r'united_group', views.UnitedGroupViewSet)
 #router.register(r'group_bulletin', views.GroupFeedsViewSet)
 router.register(r'group_schedule', views.GroupSchedulesViewSet)
 #router.register(r'feed_comment', views.FeedCommentViewSet)
-router.register(r'feed_like', views.FeedLikeViewSet)
+#router.register(r'feed_like', views.FeedLikeViewSet)
 router.register(r'feed_image', views.FeedImageViewSet)
 
 urlpatterns = [
@@ -126,6 +129,6 @@ urlpatterns = [
     url(r'^feed_comment/$', feed_comment_root, name='feed_comment_root'),
     url(r'^feed_comment/(?P<pk>[^/]+)/$', feed_comment_detail, name='feed_comment_detail'),
     url(r'^feed_like/$', feed_like_root, name='feed_like_root'),
-    url(r'^feed_like/(?P<pk>[^/]+)/$', feed_like_detail, name='feed_like_detail'),
+    url(r'^feed_like/(?P<feed_id>[^/]+)/$', feed_like_detail, name='feed_like_detail'),
 
 ]

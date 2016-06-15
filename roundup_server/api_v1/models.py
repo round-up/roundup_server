@@ -264,8 +264,15 @@ class GroupFeeds(models.Model):
 
 class FeedCommentManager(models.Manager):
     def get_comments_by_feed_id(self, feed_id):
-        comment_list = FeedComment.objects.filter(feed_id=feed_id)
-        return map(model_to_dict, comment_list)
+        try:
+            comment_list = FeedComment.objects.filter(feed_id=feed_id)
+            comment_list = map(model_to_dict, comment_list)
+            for comment_index in range(len(comment_list)):
+                comment_list[comment_index]['comment_date'] = comment_list[comment_index]['comment_date'].strftime('%Y-%m-%d %H:%m:%S')
+            return comment_list
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
 
     def add_comment(self, data):
         try:
@@ -302,8 +309,28 @@ class FeedComment(models.Model):
 
 class FeedLikeManager(models.Manager):
     def get_likes_by_feed_id(self, feed_id):
-        like_list = FeedLike.objects.filter(feed_id=feed_id)
-        return map(model_to_dict, like_list)
+        try:
+            like_list_temp = FeedLike.objects.filter(feed_id=feed_id)
+            like_list = []
+            for idx in range(len(like_list_temp)):
+                temp = like_list_temp[idx].__dict__
+                del temp['_state']
+                like_list.append(temp)
+            print like_list
+            for idx in range(len(like_list)):
+                like_list[idx]['like_date'] = like_list[idx]['like_date'].strftime('%Y-%m-%d %H:%m:%S')
+            return like_list
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+
+    def get_like_count(self, feed_id):
+        try:
+            like_list = FeedLike.objects.filter(feed_id=feed_id)
+            return {'result': len(like_list)}
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
 
     def add_like(self, data):
         try:
