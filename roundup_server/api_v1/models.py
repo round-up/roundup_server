@@ -2,7 +2,6 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
 from django.forms.models import model_to_dict
 from additionals import SUCCESS_TO_EXCEED, FAILED_TO_EXCEED
-from datetime import date
 
 
 class UserExtendManager(BaseUserManager):
@@ -15,7 +14,7 @@ class UserExtendManager(BaseUserManager):
     def check_password(self, data):
         email = data['email']
         password = data['password']
-        user = self.get_by_natural_key(email)
+        user = UserExtend.objects.get(email=email)
         if user == None:
             return False
         return user.check_password(password)
@@ -87,21 +86,24 @@ class GroupFeedsManager(models.Manager):
         try:
             group_id = data['group_id']
             email = data['email']
-            image_list = data['image_list']
 
             group_inst = Group.objects.get(id=group_id)
             user_inst = UserExtend.objects.get(email=email)
 
             del data['group_id']
             del data['email']
-            del data['image_list']
+
+            if 'image_list' in data:
+                image_list = data['image_list']
+                del data['image_list']
 
             model = GroupFeeds.objects.model(group_id=group_inst, email=user_inst, **data)
             model.save()
 
             #add images
-            feed_id = model.__dict__['id']
-            FeedImage.objects.add_images(feed_id, image_list)
+            if image_list is not None:
+                feed_id = model.__dict__['id']
+                FeedImage.objects.add_images(feed_id, image_list)
         except Exception, e:
             print e.message
             return FAILED_TO_EXCEED
@@ -418,3 +420,11 @@ class GroupSchedules(models.Model):
     schedule_start_date = models.DateTimeField(auto_now=True)
     schedule_end_date = models.DateTimeField(auto_now=True)
     schedule_place = models.CharField(max_length=100)
+
+
+class GroupUserFollowing(models.Model):
+    email = models.ForeignKey(UserExtend)
+    group_id = models.ForeignKey(Group)
+
+    class Meta:
+        unique_together = ('email', 'group_id', )
