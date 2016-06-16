@@ -1,7 +1,7 @@
 # -*- coding : utf-8 -*-
 from rest_framework import viewsets
 from serializers import *
-from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupFeeds, GroupSchedules
+from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupFeeds, GroupSchedules, GroupUserFollowing
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from rest_framework import status
@@ -70,8 +70,13 @@ class UserViewSet(viewsets.ModelViewSet):
     @detail_route(renderer_classes=[JSONRenderer])
     def check_password(self, request, *args, **kwargs):
         data = request.data
-        chk_result = {'result' : UserExtend.objects.check_password(data)}
-        return HttpResponse(json.dumps(chk_result), status=status.HTTP_200_OK)
+        try:
+            chk_result = {'result' : UserExtend.objects.check_password(data)}
+            return HttpResponse(json.dumps(chk_result), status=status.HTTP_200_OK)
+        except Exception, e:
+            print e.message
+            return HttpResponse(json.dumps({'result': False}), status=status.HTTP_200_OK)
+
 
 
 class GroupBelongViewSet(viewsets.ModelViewSet):
@@ -105,6 +110,10 @@ class GroupViewSet(viewsets.ModelViewSet):
                 print user
                 if type(user['user_birth']) == date:
                     user['user_birth'] = user['user_birth'].strftime('yyyy-MM-dd')
+                    del user['password']
+                    del user['is_admin']
+                    del user['last_login']
+                    del user['is_active']
                     d['users'][idx] = user
                 print user
             print json.dumps(d)
@@ -285,7 +294,8 @@ class FeedLikeViewSet(viewsets.ModelViewSet):
                 return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
-    def get_likes_by_feed_id(self, request, feed_id):
+    def get_likes_by_feed_id(self, request, pk):
+        feed_id = pk
         if feed_id is not None:
             #feed_id = request.data['feed_id']
             result = FeedLike.objects.get_likes_by_feed_id(feed_id=feed_id)
@@ -308,4 +318,10 @@ class FeedLikeViewSet(viewsets.ModelViewSet):
 class GroupSchedulesViewSet(viewsets.ModelViewSet):
     queryset = GroupSchedules.objects.all()
     serializer_class = GroupSchedulesSerializer
+    renderer_classes = (JSONRenderer, )
+
+
+class GroupUserFollowingViewSet(viewsets.ModelViewSet):
+    queryset = GroupUserFollowing.objects.all()
+    serializer_class = GroupUserFollowingSerializer
     renderer_classes = (JSONRenderer, )

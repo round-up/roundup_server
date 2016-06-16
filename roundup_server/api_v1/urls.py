@@ -18,13 +18,13 @@ user_detail = views.UserViewSet.as_view({
 })
 
 user_chk = views.UserViewSet.as_view({
-    'get': 'check_password'
+    'post': 'check_password'
 })
 
 # groups
 
 group_root = views.GroupViewSet.as_view({
-    'get': 'list',
+    #'get': 'list',
     'post': 'create',
 })
 
@@ -73,6 +73,11 @@ group_feed_root = views.GroupFeedsViewSet.as_view({
     'post': 'create',
 })
 
+group_feed_detail = views.GroupFeedsViewSet.as_view({
+    'put': 'update',
+    'delete': 'destroy',
+})
+
 # feed comment
 
 feed_comment_root = views.FeedCommentViewSet.as_view({
@@ -98,6 +103,17 @@ feed_like_detail = views.FeedLikeViewSet.as_view({
     'delete': 'destroy',
 })
 
+# user following
+
+group_user_following_root = views.GroupUserFollowingViewSet.as_view({
+    'post': 'create',
+    'get': 'list',
+})
+
+
+group_user_following_detail = views.GroupUserFollowingViewSet.as_view({
+    'delete': 'destroy',
+})
 
 router = routers.DefaultRouter()
 #router.register(r'user', views.UserViewSet)
@@ -125,10 +141,12 @@ urlpatterns = [
     url(r'^group_user/$', group_user_root, name='group_user_list'),
     url(r'^group_user/(?P<pk>[^/]+)/$', group_user_detail, name='group_user_detail'),
     url(r'^group_feed/$', group_feed_root, name='group_feed_root'),
+    url(r'^group_feed/(?P<pk>[^/]+)/$', group_feed_detail, name='group_feed_detail'),
     url(r'^home_feed/$', home_feed_root, name='home_feed_root'),
     url(r'^feed_comment/$', feed_comment_root, name='feed_comment_root'),
     url(r'^feed_comment/(?P<pk>[^/]+)/$', feed_comment_detail, name='feed_comment_detail'),
     url(r'^feed_like/$', feed_like_root, name='feed_like_root'),
-    url(r'^feed_like/(?P<feed_id>[^/]+)/$', feed_like_detail, name='feed_like_detail'),
-
+    url(r'^feed_like/(?P<pk>[^/]+)/$', feed_like_detail, name='feed_like_detail'),
+    url(r'^group_following/$', group_user_following_root, name='group_user_following_root'),
+    url(r'^group_following/(?P<pk>[^/]+)/$', group_user_following_detail, name='group_user_following_detail'),
 ]
