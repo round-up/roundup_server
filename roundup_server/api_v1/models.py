@@ -88,11 +88,13 @@ class GroupFeedsManager(models.Manager):
             email = data['email']
 
             group_inst = Group.objects.get(id=group_id)
+            print email
             user_inst = UserExtend.objects.get(email=email)
 
             del data['group_id']
             del data['email']
 
+            image_list = None
             if 'image_list' in data:
                 image_list = data['image_list']
                 del data['image_list']
