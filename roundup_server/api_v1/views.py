@@ -235,14 +235,14 @@ class GroupFeedsViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         image_list = None
-        if 'image_list' in request.data:
-            image_list = request.data['image_list']
-            del request.data['image_list']
+        if 'feed_image' in request.data:
+            image_list = request.data['feed_image']
+            del request.data['feed_image']
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid()
         data = dict(serializer.data)
         if image_list is not None:
-            data['image_list'] = image_list
+            data['feed_image'] = image_list
         #serializer.data['image_list'] = image_list
         if serializer.data is not None :
             result = GroupFeeds.objects.create(data)
@@ -260,9 +260,13 @@ class GroupFeedsViewSet(viewsets.ModelViewSet):
             result = GroupFeeds.objects.get_home_feeds(email)
         return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
 
-    def get_group_feeds(self, request):
-        serializers = self.get_serializer(data=request.data)
-        serializers.is_valid()
+    def get_group_feeds(self, request, group_id, top):
+        try:
+            result = GroupFeeds.objects.get_feeds(group_id=group_id, k=top)
+        except Exception, e:
+            print e.message
+            return HttpResponse('{"result": "fail"}',status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
 
 
 class FeedCommentViewSet(viewsets.ModelViewSet):
@@ -296,6 +300,13 @@ class FeedImageViewSet(viewsets.ModelViewSet):
     queryset = FeedImage.objects.all()
     serializer_class = FeedImageSerializer
     renderer_classes = (JSONRenderer, )
+
+    def add_image_list(self, request, *args, **kwargs):
+        for item in request.data:
+            feed_id = item['feed_id']
+            image_list = item['image_list']
+            result = FeedImage.objects.add_images(feed_id=feed_id, image_list=image_list)
+        return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
 
 
 class FeedLikeViewSet(viewsets.ModelViewSet):

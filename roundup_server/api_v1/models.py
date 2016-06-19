@@ -95,9 +95,9 @@ class GroupFeedsManager(models.Manager):
             del data['email']
 
             image_list = None
-            if 'image_list' in data:
-                image_list = data['image_list']
-                del data['image_list']
+            if 'feed_image' in data:
+                image_list = data['feed_image']
+                del data['feed_image']
 
             model = GroupFeeds.objects.model(group_id=group_inst, email=user_inst, **data)
             model.save()
@@ -231,6 +231,7 @@ class Group(models.Model):
     group_logo = models.TextField(blank=True)
     group_cover = models.TextField(blank=True)
     group_recruit_state = models.BooleanField(default=False)
+    group_gisoo = models.IntegerField(default=1)
 
     objects = GroupManager()
 
@@ -405,7 +406,6 @@ class FeedLikeManager(models.Manager):
                 temp = like_list_temp[idx].__dict__
                 del temp['_state']
                 like_list.append(temp)
-            print like_list
             for idx in range(len(like_list)):
                 like_list[idx]['like_date'] = like_list[idx]['like_date'].strftime('%Y-%m-%d %H:%m:%S')
             return like_list
@@ -456,9 +456,8 @@ class FeedImageManager(models.Manager):
 
     def add_images(self, feed_id, image_list):
         try:
-            feed_inst = GroupFeeds.objects.get(id=feed_id)
-
             for img_data in image_list:
+                feed_inst = GroupFeeds.objects.get(id=feed_id)
                 model = FeedImage.objects.model(feed_id=feed_inst, feed_image=img_data)
                 model.save()
 
