@@ -78,6 +78,10 @@ group_feed_detail = views.GroupFeedsViewSet.as_view({
     'delete': 'destroy',
 })
 
+feed_list_by_group = views.GroupFeedsViewSet.as_view({
+    'get': 'get_group_feeds',
+})
+
 # feed comment
 
 feed_comment_root = views.FeedCommentViewSet.as_view({
@@ -115,18 +119,6 @@ group_user_following_detail = views.GroupUserFollowingViewSet.as_view({
     'delete': 'destroy',
 })
 
-router = routers.DefaultRouter()
-#router.register(r'user', views.UserViewSet)
-router.register(r'group_belong', views.GroupBelongViewSet)
-#router.register(r'group', views.GroupViewSet)
-router.register(r'united_group', views.UnitedGroupViewSet)
-#router.register(r'group_user_level', views.GroupUserLevelViewSet)
-#router.register(r'group_user', views.GroupUsersViewSet)
-#router.register(r'group_bulletin', views.GroupFeedsViewSet)
-router.register(r'group_schedule', views.GroupSchedulesViewSet)
-#router.register(r'feed_comment', views.FeedCommentViewSet)
-#router.register(r'feed_like', views.FeedLikeViewSet)
-router.register(r'feed_image', views.FeedImageViewSet)
 # United Group
 
 united_group_root = views.UnitedGroupViewSet.as_view({
@@ -141,6 +133,15 @@ united_group_detail = views.UnitedGroupViewSet.as_view({
 united_group_join = views.UnitedGroupsBridgeViewSet.as_view({
     'post': 'create',
 })
+
+# feed image
+
+feed_image_root = views.FeedImageViewSet.as_view({
+    'post': 'add_image_list',
+})
+
+# get feeds using group id
+
 
 urlpatterns = [
     url(r'^user/$', user_root, name='user_list'),
@@ -165,4 +166,6 @@ urlpatterns = [
     url(r'^united_group/$', united_group_root, name='united_group_root'),
     url(r'^united_group/(?P<pk>[^/]+)/$', united_group_detail, name='united_group_detail'),
     url(r'^united_group_join/$', united_group_join, name='united_group_join'),
+    url(r'^feed_image/$', feed_image_root, name='feed_image_root'),
+    url(r'^group_feed/group/(?P<group_id>[^/]+)/(?P<top>[^/]+)/$', feed_list_by_group, name='feed_list_by_group'),
 ]
