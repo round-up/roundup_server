@@ -127,9 +127,22 @@ router.register(r'group_schedule', views.GroupSchedulesViewSet)
 #router.register(r'feed_comment', views.FeedCommentViewSet)
 #router.register(r'feed_like', views.FeedLikeViewSet)
 router.register(r'feed_image', views.FeedImageViewSet)
+# United Group
+
+united_group_root = views.UnitedGroupViewSet.as_view({
+    'post': 'create',
+})
+
+united_group_detail = views.UnitedGroupViewSet.as_view({
+    'get': 'retrieve',
+    'delete': 'destroy',
+})
+
+united_group_join = views.UnitedGroupsBridgeViewSet.as_view({
+    'post': 'create',
+})
 
 urlpatterns = [
-    url(r'^', include(router.urls)),
     url(r'^user/$', user_root, name='user_list'),
     url(r'^user/check/', user_chk, name='chk_password'),
     url(r'^user/(?P<pk>[^/]+)/$', user_detail, name='user_detail'),
@@ -149,4 +162,7 @@ urlpatterns = [
     url(r'^feed_like/(?P<pk>[^/]+)/$', feed_like_detail, name='feed_like_detail'),
     url(r'^group_following/$', group_user_following_root, name='group_user_following_root'),
     url(r'^group_following/(?P<pk>[^/]+)/$', group_user_following_detail, name='group_user_following_detail'),
+    url(r'^united_group/$', united_group_root, name='united_group_root'),
+    url(r'^united_group/(?P<pk>[^/]+)/$', united_group_detail, name='united_group_detail'),
+    url(r'^united_group_join/$', united_group_join, name='united_group_join'),
 ]
