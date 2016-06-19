@@ -111,16 +111,23 @@ class GroupFeedsManager(models.Manager):
             result['normal'].extend(self.get_hot_feeds(group_id))
 
         # leader add
-        group_inst = Group.objects.get(group_leader_email=email)
-        d = model_to_dict(group_inst)
-        group_id = d['id']
-        result['session'].extend(self.get_session_feeds(group_id))
-        result['normal'].extend(self.get_hot_feeds(group_id))
+
+        group_inst_list = Group.objects.filter(group_leader_email=email)
+        for group_inst in group_inst_list:
+            d = model_to_dict(group_inst)
+            group_id = d['id']
+            result['session'].extend(self.get_session_feeds(group_id))
+            result['normal'].extend(self.get_hot_feeds(group_id))
         return result
 
-    def get_feeds(self, group_id, feed_type='normal', k=2):
+    def get_feeds(self, group_id, feed_type=None, k=2):
         group_inst = Group.objects.get(id=group_id)
-        result = [model_to_dict(x) for x in GroupFeeds.objects.filter(group_id=group_inst, feed_type=feed_type)[:k]]
+        if feed_type is None:
+            query = GroupFeeds.objects.filter(group_id=group_inst)
+        else:
+            query = GroupFeeds.objects.filter(group_id=group_inst, feed_type=feed_type)
+
+        result = [model_to_dict(x) for x in query[:k]]
         for item in result:
             item['feed_date'] = item['feed_date'].strftime('yyyy-MM-dd HH:mm:ss')
         return result
@@ -203,16 +210,35 @@ class Group(models.Model):
         return self.group_name
 
 class UnitedGroupManager(models.Manager):
-    def create_united_group(self, data):
+    def create_united_group(self, data, group_id):
         try:
-            group_id = data['group_id']
-            del data['group_id']
             model = UnitedGroup.objects.create(**data)
             united_group_id = model.pk
-
-            mid_result = UnitedGroupsBridge.object.create(group_id, united_group_id)
-            if mid_result==FAILED_TO_EXCEED:
+            mid_result = UnitedGroupsBridge.objects.join_united_group(group_id, united_group_id)
+            if mid_result == FAILED_TO_EXCEED:
                 return FAILED_TO_EXCEED
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+        return SUCCESS_TO_EXCEED
+
+    def get_united_groups(self, group_id):
+        try:
+            result = {}
+            u_inst = UnitedGroupsBridge.objects.get(group_id=group_id)
+            u_group = UnitedGroup.objects.get(id=u_inst.__dict__['united_group_id'])
+            u_name = u_group.__dict__['united_group_title']
+            result['united_group_title'] = u_name
+            result['group_list'] = []
+            filtered_obj = UnitedGroupsBridge.objects.filter(united_group_id=u_inst.__dict__['united_group_id'])
+
+            for inst in filtered_obj:
+                group_inst = Group.objects.get(id=inst.__dict__['group_id_id'])
+                group_id = group_inst.__dict__['id']
+                group_name = group_inst.__dict__['group_name']
+                group_logo = group_inst.__dict__['group_logo']
+                result['group_list'].append({'id':group_id, 'group_name':group_name, 'group_logo':group_logo})
+            return result
         except Exception, e:
             print e.message
             return FAILED_TO_EXCEED
@@ -225,7 +251,7 @@ class UnitedGroup(models.Model):
     united_group_starting_date = models.DateField(auto_now=True)
     united_group_recruit_state = models.BooleanField(default=False)
 
-    object = UnitedGroupManager()
+    objects = UnitedGroupManager()
 
     class Meta:
         ordering = ('united_group_starting_date', 'united_group_title',)
@@ -234,13 +260,13 @@ class UnitedGroup(models.Model):
         return self.united_group_title
 
 
-class UnitedGroupsBridgeManager(models.Model):
-    def create(self, group_id, united_group_id):
+class UnitedGroupsBridgeManager(models.Manager):
+    def join_united_group(self, group_id, united_group_id):
         try:
             group_inst = Group.objects.get(id=group_id)
-            united_group_inst = UnitedGroup.object.get(id=united_group_id)
-            UnitedGroupsBridge.object.create(group_id=group_inst, united_group=united_group_inst)
-
+            united_group_inst = UnitedGroup.objects.get(id=united_group_id)
+            model=UnitedGroupsBridge.objects.model(group_id=group_inst, united_group=united_group_inst)
+            model.save()
         except Exception, e:
             print e.message
             return FAILED_TO_EXCEED
@@ -251,7 +277,7 @@ class UnitedGroupsBridge(models.Model):
     group_id = models.ForeignKey(Group)
     united_group = models.ForeignKey(UnitedGroup)
 
-    object = UnitedGroupsBridgeManager()
+    objects = UnitedGroupsBridgeManager()
 
     class Meta:
         unique_together = ('group_id', 'united_group', )
@@ -286,7 +312,6 @@ class GroupFeeds(models.Model):
     feed_date = models.DateTimeField()#auto_now=True)
     feed_content = models.TextField(blank=True)
     feed_access_modifier = models.IntegerField(default=1)
-    feed_image = models.TextField(default='')
     feed_tags = models.TextField(blank=True)
 
     objects = GroupFeedsManager()

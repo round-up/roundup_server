@@ -102,12 +102,15 @@ class GroupViewSet(viewsets.ModelViewSet):
 
             # check date time
             for idx, user in enumerate(d['users']):
-                print user
                 if type(user['user_birth']) == date:
                     user['user_birth'] = user['user_birth'].strftime('yyyy-MM-dd')
                     d['users'][idx] = user
-                print user
-            print json.dumps(d)
+
+            united_groups = UnitedGroup.objects.get_united_groups(group_id=group_id)
+            d['united_group'] = united_groups
+            # filter own group
+            d['united_group']['group_list'] = filter(lambda x: x['id'] != group_id, d['united_group']['group_list'])
+
             return HttpResponse(json.dumps(d), status=status.HTTP_200_OK)
         except Exception, e:
             print e.message
@@ -125,8 +128,6 @@ class GroupViewSet(viewsets.ModelViewSet):
             inst2 = Group.objects.filter_group_by_group_user(email)
             result_part2 = convert_inst_to_json(inst2)
 
-            print result_part1
-            print result_part2
             if result_part1 is not None:
                 result['leader'] = result_part1
             if result_part2 is not None:
@@ -147,16 +148,19 @@ class UnitedGroupViewSet(viewsets.ModelViewSet):
     renderer_classes = (JSONRenderer, )
 
     def create(self, request):
-        print request.data
-        result = None
-        if result is not None:
+        group_id = request.data['group_id']
+        del request.data['group_id']
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid()
+        result = UnitedGroup.objects.create_united_group(serializer.data, group_id)
+        if result['result'] == 'success':
             return HttpResponse(result, status=status.HTTP_200_OK)#, headers=headers)
-        return HttpResponse('{"result":"true"}', status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse(result, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UnitedGroupsBridgeViewSet(viewsets.ModelViewSet):
     queryset = UnitedGroupsBridge.objects.all()
-    serializer_class = UnitedGroupSerializer
+    serializer_class = UnitedGroupsBridgeSerializer
     renderer_classes = (JSONRenderer, )
 
 

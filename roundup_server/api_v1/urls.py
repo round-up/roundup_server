@@ -104,5 +104,5 @@ urlpatterns = [
     url(r'^home_feed/$', home_feed_root, name='home_feed_root'),
     url(r'^united_group/$', united_group_root, name='united_group_root'),
     url(r'^united_group/(?P<pk>[^/]+)/$', united_group_detail, name='united_group_detail'),
-    url(r'^united_group/join/$', united_group_join, name='united_group_join'),
+    url(r'^united_group_join/$', united_group_join, name='united_group_join'),
 ]
