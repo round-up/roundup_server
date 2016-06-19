@@ -1,7 +1,7 @@
 # -*- coding : utf-8 -*-
 from rest_framework import viewsets
 from serializers import *
-from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupFeeds, GroupSchedules
+from models import UserExtend, GroupBelong, Group, UnitedGroup, GroupUserLevel, GroupUsers, GroupFeeds, GroupSchedules, UnitedGroupsBridge
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from rest_framework import status
@@ -145,6 +145,20 @@ class UnitedGroupViewSet(viewsets.ModelViewSet):
     queryset = UnitedGroup.objects.all()
     serializer_class = UnitedGroupSerializer
     renderer_classes = (JSONRenderer, )
+
+    def create(self, request):
+        print request.data
+        result = None
+        if result is not None:
+            return HttpResponse(result, status=status.HTTP_200_OK)#, headers=headers)
+        return HttpResponse('{"result":"true"}', status=status.HTTP_400_BAD_REQUEST)
+
+
+class UnitedGroupsBridgeViewSet(viewsets.ModelViewSet):
+    queryset = UnitedGroupsBridge.objects.all()
+    serializer_class = UnitedGroupSerializer
+    renderer_classes = (JSONRenderer, )
+
 
 
 class GroupUserLevelViewSet(viewsets.ModelViewSet):

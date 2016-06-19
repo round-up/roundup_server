@@ -202,12 +202,30 @@ class Group(models.Model):
     def __unicode__(self):
         return self.group_name
 
+class UnitedGroupManager(models.Manager):
+    def create_united_group(self, data):
+        try:
+            group_id = data['group_id']
+            del data['group_id']
+            model = UnitedGroup.objects.create(**data)
+            united_group_id = model.pk
+
+            mid_result = UnitedGroupsBridge.object.create(group_id, united_group_id)
+            if mid_result==FAILED_TO_EXCEED:
+                return FAILED_TO_EXCEED
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+        return SUCCESS_TO_EXCEED
+
 
 class UnitedGroup(models.Model):
     united_group_title = models.CharField(max_length=100)
     united_group_description = models.TextField()
     united_group_starting_date = models.DateField(auto_now=True)
     united_group_recruit_state = models.BooleanField(default=False)
+
+    object = UnitedGroupManager()
 
     class Meta:
         ordering = ('united_group_starting_date', 'united_group_title',)
@@ -216,9 +234,24 @@ class UnitedGroup(models.Model):
         return self.united_group_title
 
 
+class UnitedGroupsBridgeManager(models.Model):
+    def create(self, group_id, united_group_id):
+        try:
+            group_inst = Group.objects.get(id=group_id)
+            united_group_inst = UnitedGroup.object.get(id=united_group_id)
+            UnitedGroupsBridge.object.create(group_id=group_inst, united_group=united_group_inst)
+
+        except Exception, e:
+            print e.message
+            return FAILED_TO_EXCEED
+        return SUCCESS_TO_EXCEED
+
+
 class UnitedGroupsBridge(models.Model):
     group_id = models.ForeignKey(Group)
     united_group = models.ForeignKey(UnitedGroup)
+
+    object = UnitedGroupsBridgeManager()
 
     class Meta:
         unique_together = ('group_id', 'united_group', )
