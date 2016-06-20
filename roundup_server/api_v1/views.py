@@ -252,13 +252,13 @@ class GroupFeedsViewSet(viewsets.ModelViewSet):
                 return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
-    def get_home_feeds(self, request):
-        serializers = self.get_serializer(data=request.data)
-        serializers.is_valid()
-        if serializers.data is not None :
-            email = serializers.data['email']
+    def get_home_feeds(self, request, email):
+        try:
             result = GroupFeeds.objects.get_home_feeds(email)
-        return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+            return HttpResponse(json.dumps(result), status=status.HTTP_200_OK)
+        except Exception, e:
+            return HttpResponse('{"result": "fail"}', status=status.HTTP_400_BAD_REQUEST)
+
 
     def get_group_feeds(self, request, group_id, top):
         try:
